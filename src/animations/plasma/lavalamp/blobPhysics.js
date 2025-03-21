@@ -187,6 +187,18 @@ function updateBlobColor(blob, time, dt) {
 function spawnNewBlobs(blobSystem, time) {
     const { blobs, maxBlobs, lastSpawnTime } = blobSystem;
     
+    // Initial blob generation - ensure we have at least a minimum number of blobs
+    if (blobs.length < 10) {
+        // Create multiple blobs at once for initial population
+        const numToCreate = 10 - blobs.length;
+        for (let i = 0; i < numToCreate; i++) {
+            blobs.push(createBlob(time + i * 0.1));
+        }
+        blobSystem.lastSpawnTime = time;
+        return;
+    }
+    
+    // Regular spawning
     // Determine if we should spawn a new blob
     const shouldSpawn = blobs.length < maxBlobs && time - lastSpawnTime > blobSystem.spawnInterval;
     
@@ -204,8 +216,8 @@ function spawnNewBlobs(blobSystem, time) {
  */
 function createBlob(time) {
     // Base properties
-    const size = random(0.1, 0.25);
-    const lifespan = random(15, 30);
+    const size = random(0.1, 0.3); // Increased max size from 0.25 to 0.3
+    const lifespan = random(20, 40); // Increased from 15-30 to 20-40 for longer-lived blobs
     
     // Random position
     const x = random(0.1, 0.9);

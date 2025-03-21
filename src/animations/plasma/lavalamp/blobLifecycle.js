@@ -9,9 +9,9 @@
 export function createBlobSystem() {
     return {
         blobs: [], // Array of active blobs
-        maxBlobs: 12, // Maximum number of blobs
+        maxBlobs: 25, // Maximum number of blobs (increased from 12)
         lastSpawnTime: 0, // Time of last spawn
-        spawnInterval: 2, // Seconds between spawns
+        spawnInterval: 0.5, // Seconds between spawns (reduced from 2)
         time: 0 // Current time
     };
 }
