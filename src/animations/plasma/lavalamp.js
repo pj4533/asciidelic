@@ -201,7 +201,7 @@ export function lavaLampAnimation(grid, time, deltaTime, config, characters, col
         // Medium density chars
         '◐', '◑', '◒', '◓', '◔', '◕', '◖', '◗', '◴', '◵', '◶', '◷',
         // Lowest density/edge chars
-        '○', '◌', '◯', '◠', '◡', '◜', '◝', '◞', '◟', '◚', '◛',
+        '○', '◌', '◯', '◠', '◡', '◜', '◝', '◞', '◟', '◚', '◛'
     ];
     const bubbleChars = ['°', '•', '∘', '∙', '⊙', '⊚', '◦', '⊖', '⊗', '⊘', '⦂'];
     
@@ -411,5 +411,4 @@ export function lavaLampAnimation(grid, time, deltaTime, config, characters, col
             lightness
         });
     });
-}
 }
