@@ -27,6 +27,12 @@ export const animations = [
         description: 'A plasma-like effect with flowing patterns'
     },
     {
+        id: 'lavalamp',
+        name: 'Lava Lamp',
+        fn: lavaLampAnimation,
+        description: 'Dynamic metaballs that morph and interact fluidly'
+    },
+    {
         id: 'nebula',
         name: 'Nebula',
         fn: nebulaAnimation,
@@ -43,12 +49,6 @@ export const animations = [
         name: 'Cellular',
         fn: cellularAnimation,
         description: 'Organic cell-like structures that grow and evolve'
-    },
-    {
-        id: 'lavalamp',
-        name: 'Lava Lamp',
-        fn: lavaLampAnimation,
-        description: 'Smooth, floating blobs that rise and fall hypnotically'
     },
     {
         id: 'noisecloud',
