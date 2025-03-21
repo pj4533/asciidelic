@@ -65,7 +65,8 @@ export function nebulaAnimation(grid, time, deltaTime, config, characters, color
         // Use position and value for interesting color distribution
         const hue = colorManager.getHue(x, y, distance, normalizedValue, time);
         
-        // Brighter in dense regions
+        // Vibrant colors with appropriate brightness
+        const saturation = colorManager.saturation;
         const lightness = 40 + normalizedValue * 40;
         
         grid.setCell(x, y, {

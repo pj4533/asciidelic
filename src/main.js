@@ -268,7 +268,7 @@ export class AsciiDelic {
         if (isAutomated) {
             this.controlsHint.textContent = '↑/↓: Change pattern | M: Manual';
         } else {
-            this.controlsHint.textContent = '↑/↓: Pattern | ←/→: Colors | Space: Mode | +/-: Speed | S/D: Density | M: Auto';
+            this.controlsHint.textContent = '↑/↓: Pattern | ←/→: Colors | Space: Color Mode | +/-: Speed | S/D: Density | M: Auto';
         }
     }
 

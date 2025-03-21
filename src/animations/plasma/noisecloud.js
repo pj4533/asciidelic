@@ -73,13 +73,13 @@ export function noiseCloudAnimation(grid, time, deltaTime, config, characters, c
         // Base on height (higher clouds catch different light)
         const heightRatio = 1 - (y / height);
         
-        // Get time-varying hue
+        // Get time-varying hue from the color manager
         const baseHue = colorManager.getHue(x, y, 0, normalizedDensity, time);
         
-        // Cloud coloring - usually white/pale but can take on sky colors
+        // Cloud coloring - vibrant colorful clouds
         const hue = baseHue;
-        const saturation = 30 + cloudValue * 30; // Lower saturation for clouds
-        const lightness = 70 + cloudValue * 30; // Brighter for denser clouds
+        const saturation = 80 + cloudValue * 20; // Higher saturation for colorful clouds
+        const lightness = 50 + cloudValue * 40; // Full range of brightness
         
         grid.setCell(x, y, {
             character: cloudChars[safeIndex],

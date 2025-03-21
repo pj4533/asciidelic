@@ -114,6 +114,9 @@ export function cellularAnimation(grid, time, deltaTime, config, characters, col
         // Calculate hue based on position and cell influence
         const hue = colorManager.getHue(x, y, minDistance, normalizedValue, time);
         
+        // Use saturation from color manager for consistency
+        const saturation = colorManager.saturation;
+        
         // Cell walls are brighter, intercellular space is darker
         let lightness;
         if (isCellWall) {

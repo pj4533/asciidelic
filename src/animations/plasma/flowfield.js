@@ -68,6 +68,8 @@ export function flowFieldAnimation(grid, time, deltaTime, config, characters, co
         // Get color based on flow direction and intensity
         const hue = colorManager.getHue(x, y, dist, normalizedAngle, time);
         
+        // Use full saturation from color manager
+        const saturation = colorManager.saturation;
         // Brighter for stronger flows
         const lightness = 40 + intensity * 35;
         

@@ -95,15 +95,11 @@ export function lavaLampAnimation(grid, time, deltaTime, config, characters, col
         
         const safeIndex = Math.min(Math.max(0, charIndex), lavaChars.length - 1);
         
-        // Lava color effect
-        // Base color shifts slowly over time
-        const baseHue = (slowTime * 5) % 360;
-        // Adjust hue based on vertical position for temperature gradient
-        const relativeY = y / height;
-        const tempOffset = (1 - relativeY) * 30; // Hotter at bottom
+        // Get hue from color manager for consistency with other animations
+        const hue = colorManager.getHue(x, y, 0, normalizedValue, time);
         
-        // Get final hue with slight noise for variety
-        const hue = (baseHue + tempOffset + normalizedValue * 20) % 360;
+        // Use saturation from color manager
+        const saturation = colorManager.saturation;
         
         // Brighter inside blobs
         const lightness = 30 + finalValue * 40;
