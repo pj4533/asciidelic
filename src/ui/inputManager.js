@@ -1,5 +1,5 @@
 /**
- * Input Manager - Handles user input for AsciiDelic
+ * Input Manager - Central system for handling user input in AsciiDelic
  */
 export class InputManager {
     /**
@@ -13,35 +13,124 @@ export class InputManager {
         this.uiManager = uiManager;
         this.animations = animations;
         this.keyBindings = new Map();
+        this.keysPressed = new Set();
         
-        // Set up default bindings
+        // Set up key bindings and event listeners
         if (engine && uiManager && animations) {
             this.setupDefaultBindings();
+            this.setupEventListeners();
         }
     }
     
     /**
-     * Set the engine reference
-     * @param {Object} engine - AsciiEngine instance
+     * Set up keyboard and touch event listeners
      */
-    setEngine(engine) {
-        this.engine = engine;
+    setupEventListeners() {
+        // Keyboard events
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        document.addEventListener('keyup', this.handleKeyUp.bind(this));
+        
+        // Touch events for mobile support
+        document.addEventListener('touchstart', this.handleTouchStart.bind(this));
+        document.addEventListener('touchend', this.handleTouchEnd.bind(this));
     }
     
     /**
-     * Set the UI manager reference
-     * @param {Object} uiManager - UIManager instance
+     * Handle key down events
+     * @param {KeyboardEvent} event - Keyboard event
      */
-    setUIManager(uiManager) {
-        this.uiManager = uiManager;
+    handleKeyDown(event) {
+        if (event.repeat) return; // Ignore key repeat
+        
+        this.keysPressed.add(event.key);
+        
+        // Execute the bound action if any
+        if (this.keyBindings.has(event.key)) {
+            const callback = this.keyBindings.get(event.key);
+            callback();
+        }
     }
     
     /**
-     * Set the animations reference
-     * @param {Array} animations - Available animations
+     * Handle key up events
+     * @param {KeyboardEvent} event - Keyboard event
      */
-    setAnimations(animations) {
-        this.animations = animations;
+    handleKeyUp(event) {
+        this.keysPressed.delete(event.key);
+    }
+    
+    /**
+     * Handle touch start events
+     * @param {TouchEvent} event - Touch event
+     */
+    handleTouchStart(event) {
+        const touch = event.touches[0];
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        
+        // Simulate arrow key presses based on touch position
+        if (touch.clientY < height * 0.3) {
+            // Top third - up arrow
+            this.simulateKeyPress('ArrowUp');
+        } else if (touch.clientY > height * 0.7) {
+            // Bottom third - down arrow
+            this.simulateKeyPress('ArrowDown');
+        } else if (touch.clientX < width * 0.3) {
+            // Left third - left arrow
+            this.simulateKeyPress('ArrowLeft');
+        } else if (touch.clientX > width * 0.7) {
+            // Right third - right arrow
+            this.simulateKeyPress('ArrowRight');
+        } else {
+            // Center - space bar
+            this.simulateKeyPress(' ');
+        }
+    }
+    
+    /**
+     * Handle touch end events
+     * @param {TouchEvent} event - Touch event
+     */
+    handleTouchEnd(event) {
+        // Clear simulated keys
+        this.keysPressed.clear();
+    }
+    
+    /**
+     * Simulate a key press
+     * @param {string} key - Key to simulate
+     */
+    simulateKeyPress(key) {
+        if (this.keyBindings.has(key)) {
+            const callback = this.keyBindings.get(key);
+            callback();
+        }
+    }
+    
+    /**
+     * Bind a key to a function
+     * @param {string} key - Key to bind
+     * @param {Function} callback - Function to call when key is pressed
+     */
+    bindKey(key, callback) {
+        this.keyBindings.set(key, callback);
+    }
+    
+    /**
+     * Unregister a key binding
+     * @param {string} key - Key to unbind
+     */
+    unbindKey(key) {
+        this.keyBindings.delete(key);
+    }
+    
+    /**
+     * Check if a key is currently pressed
+     * @param {string} key - Key to check
+     * @returns {boolean} True if the key is pressed
+     */
+    isKeyPressed(key) {
+        return this.keysPressed.has(key);
     }
     
     /**
@@ -49,8 +138,8 @@ export class InputManager {
      */
     setupDefaultBindings() {
         // Animation navigation - always active regardless of mode
-        this.bindKey('ArrowUp', this.handleAnimationUp.bind(this));
-        this.bindKey('ArrowDown', this.handleAnimationDown.bind(this));
+        this.bindKey('ArrowUp', this.handleAnimationPrevious.bind(this));
+        this.bindKey('ArrowDown', this.handleAnimationNext.bind(this));
         
         // Mode toggle
         this.bindKey('m', this.handleModeToggle.bind(this));
@@ -72,31 +161,34 @@ export class InputManager {
         this.bindKey('D', this.handleDensityIncrease.bind(this));
         this.bindKey('s', this.handleDensityDecrease.bind(this));
         this.bindKey('S', this.handleDensityDecrease.bind(this));
-        
-        // Enable keyboard events
-        this.enableKeyboardEvents();
     }
     
     /**
-     * Handle animation up (previous animation)
+     * Switch to the previous animation
      */
-    handleAnimationUp() {
+    handleAnimationPrevious() {
         const currentIdx = this.engine.config.animationType;
         const newIdx = (currentIdx - 1 + this.animations.length) % this.animations.length;
-        this.engine.updateConfig({ animationType: newIdx });
-        this.engine.setAnimation(this.animations[newIdx].id);
-        this.uiManager.updateAnimationDisplay(newIdx, this.animations, this.engine.config);
+        this.changeAnimation(newIdx);
     }
     
     /**
-     * Handle animation down (next animation)
+     * Switch to the next animation
      */
-    handleAnimationDown() {
+    handleAnimationNext() {
         const currentIdx = this.engine.config.animationType;
         const newIdx = (currentIdx + 1) % this.animations.length;
-        this.engine.updateConfig({ animationType: newIdx });
-        this.engine.setAnimation(this.animations[newIdx].id);
-        this.uiManager.updateAnimationDisplay(newIdx, this.animations, this.engine.config);
+        this.changeAnimation(newIdx);
+    }
+    
+    /**
+     * Change to a specific animation
+     * @param {number} index - Index of the animation to switch to
+     */
+    changeAnimation(index) {
+        this.engine.updateConfig({ animationType: index });
+        this.engine.setAnimation(this.animations[index].id);
+        this.uiManager.updateAnimationDisplay(index, this.animations, this.engine.config);
     }
     
     /**
@@ -182,32 +274,5 @@ export class InputManager {
             this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
             this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
         }
-    }
-    
-    /**
-     * Bind a key to a function
-     * @param {string} key - Key to bind
-     * @param {Function} callback - Function to call when key is pressed
-     */
-    bindKey(key, callback) {
-        this.keyBindings.set(key, callback);
-    }
-    
-    /**
-     * Handle keydown event
-     * @param {KeyboardEvent} event - Keyboard event
-     */
-    handleKeyDown(event) {
-        const callback = this.keyBindings.get(event.key);
-        if (callback) {
-            callback();
-        }
-    }
-    
-    /**
-     * Enable keyboard events
-     */
-    enableKeyboardEvents() {
-        document.addEventListener('keydown', this.handleKeyDown.bind(this));
     }
 }
