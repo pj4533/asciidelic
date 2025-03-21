@@ -1,5 +1,5 @@
 /**
- * Lava Lamp Animation - Realistic flowing wax blobs with physics-inspired behavior
+ * Lava Lamp Animation - Dynamic flowing plasma with metaball behavior
  */
 import { lavaLampAnimation } from './lavalamp/index.js';
 

@@ -1,173 +1,270 @@
 /**
- * Renderer for lava lamp animation
+ * Advanced metaball renderer for lava lamp animation
  */
-import { calculateBlobInfluence } from './blobPhysics.js';
+import { smootherStep, lerp } from '../../../utils/math.js';
 
 // Character sets for different parts of the lava lamp
 const bgChars = [' ', '.', '·', ':', '·'];
-const glassChars = ['│', '║', '┃', '┆', '┇', '┊', '┋', '╎', '╏', '┴', '┬', '╷', '╶', '╴']; // Vertical borders
-const lavaChars = [
-    // Core blob characters (dense, rounded)
-    '●', '◎', '◉', '⦿', '◍', '◌', '◯', '⚪', '⚫',
-    // Medium density chars
-    '◐', '◑', '◒', '◓', '◔', '◕', '◖', '◗', '◴', '◵', '◶', '◷',
-    // Lowest density/edge chars
-    '○', '◌', '◯', '◠', '◡', '◜', '◝', '◞', '◟', '◚', '◛'
+const plasmaChars = [
+    // Dense/bright characters
+    '@', '#', '%', '&', '$', 'W', 'M', 'B', '8',
+    // Medium density
+    '*', '+', '=', '^', '~', '?', '-', ':', ';',
+    // Low density
+    '.', ',', '`', ' '
 ];
-const bubbleChars = ['°', '•', '∘', '∙', '⊙', '⊚', '◦', '⊖', '⊗', '⊘', '⦂'];
 
 /**
- * Render a glass container edge
+ * Render the plasma effect
  * @param {Object} grid - Character grid 
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
- * @param {number} containerLeft - Left edge of container
- * @param {number} containerRight - Right edge of container
- * @param {number} containerTop - Top edge of container
- * @param {number} containerBottom - Bottom edge of container
- * @param {number} glassThickness - Thickness of glass
- * @param {boolean} inCap - Whether position is in cap
- * @param {number} normalizedValue - Blob influence value (0-1)
- * @param {number} time - Current time in seconds
+ * @param {number} time - Current time
+ * @param {Object} blobSystem - The blob system
+ * @param {Array} characters - Available characters
  * @param {Object} colorManager - Color manager
  */
-export function renderGlass(grid, x, y, containerLeft, containerRight, containerTop, containerBottom, glassThickness, inCap, normalizedValue, time, colorManager) {
-    // Choose appropriate glass character based on position
-    let glassChar;
+export function renderPlasma(grid, time, blobSystem, characters, colorManager) {
+    const width = grid.width;
+    const height = grid.height;
+    const { blobs } = blobSystem;
     
-    if (Math.abs(x - containerLeft) <= glassThickness) {
-        // Left edge
-        glassChar = glassChars[0];
-    } else if (Math.abs(x - containerRight) <= glassThickness) {
-        // Right edge
-        glassChar = glassChars[0];
-    } else if (Math.abs(y - containerTop) <= glassThickness || inCap && y < containerTop) {
-        // Top edge
-        glassChar = '-';
-    } else if (Math.abs(y - containerBottom) <= glassThickness || inCap && y > containerBottom) {
-        // Bottom edge
-        glassChar = '-';
-    } else {
-        // Default glass character
-        glassChar = glassChars[Math.floor(Math.random() * glassChars.length)];
+    // Create buffer for metaball calculation
+    const buffer = new Array(width * height).fill(0);
+    
+    // Calculate metaball influence at each point
+    calculateMetaballField(buffer, width, height, blobs, time);
+    
+    // Apply ambient flow patterns
+    applyAmbientPatterns(buffer, width, height, time);
+    
+    // Render to grid
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const index = y * width + x;
+            const value = buffer[index];
+            
+            // Calculate display character
+            renderCell(grid, x, y, value, time, blobs, colorManager);
+        }
+    }
+}
+
+/**
+ * Calculate metaball influence across the field
+ * @param {Array} buffer - Buffer to store field values
+ * @param {number} width - Grid width
+ * @param {number} height - Grid height
+ * @param {Array} blobs - Array of blobs
+ * @param {number} time - Current time
+ */
+function calculateMetaballField(buffer, width, height, blobs, time) {
+    for (let y = 0; y < height; y++) {
+        const normalizedY = y / height;
+        
+        for (let x = 0; x < width; x++) {
+            const normalizedX = x / width;
+            const bufferIndex = y * width + x;
+            
+            // Calculate combined blob influence at this point
+            let totalValue = 0;
+            let maxValue = 0;
+            let nearestBlob = null;
+            let nearestDist = Infinity;
+            
+            for (const blob of blobs) {
+                // Skip if blob is invisible
+                if (blob.opacity <= 0) continue;
+                
+                // Calculate field value using metaball equation
+                const value = calculateBlobInfluence(normalizedX, normalizedY, blob, time);
+                totalValue = combineBlobValues(totalValue, value * blob.opacity);
+                
+                // Track maximum value and nearest blob
+                if (value > maxValue) {
+                    maxValue = value;
+                    
+                    // Calculate actual distance to blob center
+                    const dx = normalizedX - blob.x;
+                    const dy = normalizedY - blob.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < nearestDist) {
+                        nearestDist = dist;
+                        nearestBlob = blob;
+                    }
+                }
+            }
+            
+            // Store color information along with density
+            buffer[bufferIndex] = totalValue;
+        }
+    }
+}
+
+/**
+ * Calculate individual blob influence at a point
+ * @param {number} x - Normalized x coordinate
+ * @param {number} y - Normalized y coordinate
+ * @param {Object} blob - Blob to calculate influence for
+ * @param {number} time - Current time
+ * @returns {number} Influence value (0-1)
+ */
+function calculateBlobInfluence(x, y, blob, time) {
+    // Calculate distance to blob center with wrapping
+    let dx = x - blob.x;
+    let dy = y - blob.y;
+    
+    // Handle wrapping (assuming normalized 0-1 coordinates)
+    if (Math.abs(dx) > 0.5) dx = dx > 0 ? dx - 1 : dx + 1;
+    if (Math.abs(dy) > 0.5) dy = dy > 0 ? dy - 1 : dy + 1;
+    
+    // Transform based on blob vertices to create non-circular shape
+    const angle = Math.atan2(dy, dx);
+    const normalizedAngle = (angle + Math.PI * 2) % (Math.PI * 2);
+    
+    // Find two closest vertices and interpolate
+    const vertexCount = blob.vertices.length;
+    const vertexAngle = (Math.PI * 2) / vertexCount;
+    const vertexIndex = Math.floor(normalizedAngle / vertexAngle);
+    const nextIndex = (vertexIndex + 1) % vertexCount;
+    
+    const v1 = blob.vertices[vertexIndex];
+    const v2 = blob.vertices[nextIndex];
+    
+    // Interpolation factor between vertices
+    const t = (normalizedAngle - vertexIndex * vertexAngle) / vertexAngle;
+    const morphDistance = lerp(v1.distance, v2.distance, t);
+    
+    // Calculate distance to blob edge
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const scaledDistance = distance / morphDistance;
+    
+    // Metaball equation for smooth falloff
+    if (scaledDistance >= 1) return 0;
+    
+    // Smooth falloff function for metaball effect
+    const q = 1 - scaledDistance * scaledDistance;
+    return q * q * q;
+}
+
+/**
+ * Combine blob values using screen blend for smoother transitions
+ * @param {number} existing - Existing accumulated value
+ * @param {number} adding - Value to add
+ * @returns {number} Combined value
+ */
+function combineBlobValues(existing, adding) {
+    return existing + adding - existing * adding;
+}
+
+/**
+ * Apply ambient patterns to the field
+ * @param {Array} buffer - Buffer to modify
+ * @param {number} width - Grid width
+ * @param {number} height - Grid height
+ * @param {number} time - Current time
+ */
+function applyAmbientPatterns(buffer, width, height, time) {
+    // Add subtle background patterns
+    for (let y = 0; y < height; y++) {
+        const ny = y / height;
+        
+        for (let x = 0; x < width; x++) {
+            const nx = x / width;
+            const index = y * width + x;
+            
+            // Add subtle ambient glow
+            const ambientPattern = Math.sin(nx * 4 + time * 0.2) * Math.cos(ny * 4 + time * 0.15) * 0.02;
+            const backgroundGlow = Math.max(0, ambientPattern);
+            
+            // Add to buffer using screen blend
+            buffer[index] = buffer[index] + backgroundGlow - buffer[index] * backgroundGlow;
+        }
     }
     
-    // Glass color - slight tint based on nearby lava
-    const hue = colorManager.getHue(x, y, 0, 0.1, time);
-    const saturation = 10 + normalizedValue * 10;
-    const lightness = 60 + normalizedValue * 20;
-    
-    grid.setCell(x, y, {
-        character: glassChar,
-        hue,
-        saturation,
-        lightness
-    });
+    // Apply slight blur for glow effect
+    applySimpleBlur(buffer, width, height);
 }
 
 /**
- * Render a bubble
- * @param {Object} grid - Character grid
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
- * @param {number} time - Current time in seconds
- * @param {Object} colorManager - Color manager
+ * Apply a simple blur effect to the buffer
+ * @param {Array} buffer - Buffer to blur
+ * @param {number} width - Buffer width
+ * @param {number} height - Buffer height
  */
-export function renderBubble(grid, x, y, time, colorManager) {
-    // Draw a bubble
-    const charIndex = Math.floor(Math.random() * bubbleChars.length);
+function applySimpleBlur(buffer, width, height) {
+    const tempBuffer = [...buffer];
     
-    // Bubble colors are bright/white
-    const hue = colorManager.getHue(x, y, 0, 0.5, time);
-    const saturation = 10;
-    const lightness = 80 + Math.random() * 20;
-    
-    grid.setCell(x, y, {
-        character: bubbleChars[charIndex],
-        hue,
-        saturation,
-        lightness
-    });
+    // Simple 3x3 blur kernel
+    for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - 1; x++) {
+            const index = y * width + x;
+            const center = tempBuffer[index] * 0.4;
+            const left = tempBuffer[index - 1] * 0.1;
+            const right = tempBuffer[index + 1] * 0.1;
+            const up = tempBuffer[index - width] * 0.1;
+            const down = tempBuffer[index + width] * 0.1;
+            const ul = tempBuffer[index - width - 1] * 0.05;
+            const ur = tempBuffer[index - width + 1] * 0.05;
+            const dl = tempBuffer[index + width - 1] * 0.05;
+            const dr = tempBuffer[index + width + 1] * 0.05;
+            
+            buffer[index] = center + left + right + up + down + ul + ur + dl + dr;
+        }
+    }
 }
 
 /**
- * Render lava
+ * Render a single cell
  * @param {Object} grid - Character grid
  * @param {number} x - X coordinate
  * @param {number} y - Y coordinate
- * @param {number} normalizedValue - Blob influence value (0-1)
- * @param {number} combinedPattern - Combined flow pattern value
- * @param {number} flowPattern - Flow pattern value
- * @param {number} blobHue - Blob-specific hue offset
- * @param {number} time - Current time in seconds
+ * @param {number} value - Cell value (0-1)
+ * @param {number} time - Current time
+ * @param {Array} blobs - Array of all blobs
  * @param {Object} colorManager - Color manager
  */
-export function renderLava(grid, x, y, normalizedValue, combinedPattern, flowPattern, blobHue, time, colorManager) {
-    // Choose character based on influence level - creates nice variation
-    let charSetIndex;
-    if (normalizedValue < 0.4) {
-        // Blob edges (lowest density)
-        charSetIndex = Math.floor(flowPattern * 11) + 20;
-    } else if (normalizedValue < 0.8) {
-        // Blob mid-density
-        charSetIndex = Math.floor(flowPattern * 12) + 8;
-    } else {
-        // Blob core (densest)
-        charSetIndex = Math.floor(flowPattern * 8);
+function renderCell(grid, x, y, value, time, blobs, colorManager) {
+    // Calculate display character index based on value
+    const normValue = Math.min(1, value * 1.1); // Slightly boost for better visuals
+    const charIndex = Math.floor(normValue * (plasmaChars.length - 1));
+    const char = normValue > 0.05 ? plasmaChars[plasmaChars.length - 1 - charIndex] : bgChars[Math.floor(Math.random() * bgChars.length)];
+    
+    // Find the most influential blob at this point
+    const nx = x / grid.width;
+    const ny = y / grid.height;
+    let dominantBlob = null;
+    let maxInfluence = 0;
+    
+    for (const blob of blobs) {
+        const influence = calculateBlobInfluence(nx, ny, blob, time) * blob.opacity;
+        if (influence > maxInfluence) {
+            maxInfluence = influence;
+            dominantBlob = blob;
+        }
     }
     
-    // Ensure in bounds
-    charSetIndex = Math.min(charSetIndex, lavaChars.length - 1);
-    
-    // Get base hue from color manager, then apply blob-specific variation
-    const baseHue = colorManager.getHue(x, y, 0, combinedPattern, time);
-    
-    // Calculate final hue with variation
-    const hue = (baseHue + blobHue * 0.1) % 360;
-    
-    // Higher saturation for more vibrant lava
-    const saturation = colorManager.saturation;
-    
-    // Brightness varies with influence and flow pattern
-    const lightness = 30 + combinedPattern * 50 + flowPattern * 10;
-    
-    grid.setCell(x, y, {
-        character: lavaChars[charSetIndex],
-        hue,
-        saturation,
-        lightness
-    });
-}
-
-/**
- * Render background (space outside the lamp or empty space inside)
- * @param {Object} grid - Character grid
- * @param {number} x - X coordinate
- * @param {number} y - Y coordinate
- * @param {boolean} insideLamp - Whether this is inside the lamp
- * @param {number} time - Current time in seconds
- * @param {Object} colorManager - Color manager
- */
-export function renderBackground(grid, x, y, insideLamp, time, colorManager) {
-    const charIndex = Math.floor(Math.random() * bgChars.length);
-    const bgChar = bgChars[charIndex];
-    
+    // Set color based on the dominant blob or background
     let hue, saturation, lightness;
     
-    if (insideLamp) {
-        // Dark inside lamp
-        hue = colorManager.getHue(x, y, 0, 0.2, time);
-        saturation = 10;
-        lightness = 5 + Math.random() * 10;
+    if (dominantBlob && maxInfluence > 0.1) {
+        // Use blob's color with adjustments based on value
+        hue = dominantBlob.hue;
+        saturation = dominantBlob.saturation;
+        lightness = Math.min(90, dominantBlob.lightness + normValue * 30);
+        
+        // Add flow pattern variations
+        const flowOffset = Math.sin(nx * 4 + ny * 5 + time) * 10;
+        hue = (hue + flowOffset) % 360;
     } else {
-        // Outside the lamp
-        hue = colorManager.getHue(x, y, 0, 0.5, time);
-        saturation = 10;
-        lightness = 10 + Math.random() * 5;
+        // Background color with ambient variation
+        hue = (time * 10 + nx * 60 + ny * 30) % 360;
+        saturation = 50;
+        lightness = Math.max(5, Math.min(30, normValue * 50));
     }
     
+    // Set the cell
     grid.setCell(x, y, {
-        character: bgChar,
+        character: char,
         hue,
         saturation,
         lightness
