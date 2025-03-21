@@ -60,7 +60,7 @@ export function wormholeAnimation(grid, time, deltaTime, config, characters, col
                 saturation: colorManager.saturation,
                 lightness: depthLightness
             });
-            continue; // Skip the rest of the loop for center elements
+            return; // End callback early for center elements
         }
         
         // Character selection for the tunnel walls and sections
