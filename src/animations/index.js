@@ -23,6 +23,12 @@ export {
 // Export named animations with metadata
 export const animations = [
     {
+        id: 'plasma',
+        name: 'Plasma',
+        fn: plasmaAnimation,
+        description: 'A plasma-like effect with flowing patterns'
+    },
+    {
         id: 'waves',
         name: 'Waves',
         fn: waveAnimation,
@@ -39,12 +45,6 @@ export const animations = [
         name: 'Classic Tunnel',
         fn: tunnelAnimation,
         description: 'A classic tunnel effect with zooming rings'
-    },
-    {
-        id: 'plasma',
-        name: 'Plasma',
-        fn: plasmaAnimation,
-        description: 'A plasma-like effect with flowing patterns'
     },
     {
         id: 'mandala',
