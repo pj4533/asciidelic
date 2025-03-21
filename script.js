@@ -12,7 +12,40 @@ const config = {
     lightness: 50,
     density: 0.6, // character density
     speed: 1.0, // animation speed multiplier
-    characters: ['·', '░', '▒', '▓', '█', '◈', '◇', '◆', '○', '●', '◌', '◍', '☆', '★', '♦', '♠', '♣', '♥', '⁂', '※', '❄', '❅', '❆', '✿', '❀', '❁']
+    characters: [
+        // Light dots and points
+        '·', '∙', '•', '․', '⁘', '⁙', '⁚', '⋮', '⋯', '⋰', '⋱', 
+        
+        // Block elements with increasing density
+        '░', '▒', '▓', '█', '▄', '▀', '▌', '▐', '▖', '▗', '▘', '▙', '▚', '▛', '▜', '▝', '▞', '▟',
+        
+        // Box drawing elements
+        '╭', '╮', '╯', '╰', '│', '─', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '╱', '╲', '╳',
+        
+        // Stars, asterisks, sparks
+        '✦', '✧', '✩', '✪', '✫', '✬', '✭', '✮', '✯', '✱', '✲', '✳', '✴', '✵', '✶', '✷', '✸', '✹', '✺', '✻', '✼',
+        
+        // Rounded elements and circles
+        '◌', '○', '◎', '●', '◐', '◑', '◒', '◓', '◔', '◕', '◖', '◗', '◍', '◉', '⊙', '⊚', '⊛', '❀', '❁',
+        
+        // Diamonds and geometric
+        '◇', '◈', '◆', '⟡', '⟢', '⟣', '⟤', '⟥', '⬖', '⬗', '⬘', '⬙', '⬠', '⬡',
+        
+        // Ornate shapes and florals
+        '✿', '❀', '❁', '❂', '❃', '❇', '❈', '❉', '❊', '❋', '✽', '✾', '✿', '❆', '❅', '❄',
+        
+        // Miscellaneous special symbols
+        '♦', '♠', '♣', '♥', '⁂', '※', '⌘', '⌥', '⌦', '⌫', '⏏', '⎔', '⎕', '⍯', '⟰', '⟱', '⟲', '⟳',
+        
+        // Arrows and motion indicators
+        '↖', '↗', '↘', '↙', '↭', '↝', '↞', '↠', '↢', '↣', '↭', '↯', '↺', '↻', '⇄', '⇅', '⇆', '⇇', '⇈',
+        
+        // Mathematical and currency
+        '∞', '∆', '∇', '∂', '∀', '∃', '∄', '∑', '∏', '∐',
+        
+        // Wave/ripple like
+        '∿', '≈', '≋', '≣', '≡', '≢'
+    ]
 };
 
 // Time tracking
@@ -102,17 +135,29 @@ const animations = [
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const angle = Math.atan2(dy, dx);
                 
-                // Create tunnel effect with zooming rings
-                const zoomFactor = 10 * config.speed; // Controls zoom speed
-                const ringSpacing = 4; // Controls spacing between rings
+                // Create tunnel effect with zooming rings - slower speed
+                const zoomFactor = 4 * config.speed; // Reduced from 10 to 4
+                const ringSpacing = 5; // Increased spacing for more defined rings
                 const tunnelDepth = (distance + time * zoomFactor) % ringSpacing;
                 const value = (tunnelDepth / ringSpacing);
                 
-                const normalizedValue = value; 
-                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                // Select character based on position in tunnel
+                const section = Math.floor(distance / 5) % 4; // Create segments of different character types
+                const baseIndex = section * 35; // Jump to different sections of character array
+                const normalizedValue = value;
+                let charIndex;
+                
+                // Enhanced pattern to create a more structured tunnel
+                if (Math.abs(tunnelDepth - ringSpacing/2) < 0.5) {
+                    // Ring highlight
+                    charIndex = baseIndex + Math.floor(normalizedValue * 25 * config.density);
+                } else {
+                    // Regular tunnel sections
+                    charIndex = baseIndex + Math.floor(normalizedValue * 35 * config.density);
+                }
                 
                 characterGrid[y][x] = {
-                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
+                    character: charIndex < config.characters.length ? config.characters[charIndex] : '·',
                     hue: getHue(x, y, distance, normalizedValue),
                     saturation: config.saturation,
                     lightness: 50 + normalizedValue * 30
@@ -187,25 +232,45 @@ const animations = [
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 let angle = Math.atan2(dy, dx);
                 
-                // Create spinning tunnel effect
-                const rotationSpeed = 1.5 * config.speed;
-                const zoomFactor = 5 * config.speed;
+                // Create spinning tunnel effect - slower rotation
+                const rotationSpeed = 0.6 * config.speed; // Reduced from 1.5 to 0.6
+                const zoomFactor = 2.5 * config.speed; // Reduced from 5 to 2.5
                 
                 // Add rotation to the angle based on time and distance from center
                 angle += time * rotationSpeed * (1 - Math.min(1, distance / (config.width / 2)));
                 
-                // Create tunnel depth effect with both angle and distance
-                const tunnelDepth = (distance - time * zoomFactor + angle * 0.5) % 8;
-                const value = (tunnelDepth / 8);
+                // Create a more defined tunnel wall pattern
+                const ringCount = 10; // More rings
+                const tunnelDepth = (distance - time * zoomFactor + angle * 0.5) % ringCount;
+                const value = (tunnelDepth / ringCount);
                 
-                const normalizedValue = value;
-                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                // Special character selection based on position
+                let charSection, charIndex;
+                
+                // Use different characters for the tunnel walls and the spaces in between
+                if (tunnelDepth < 1) {
+                    // Use box drawing elements for the walls
+                    charSection = 2; // Box drawing section in character array
+                    charIndex = charSection * 18 + Math.floor(angle * 3) % 18; // Use angle to select different box chars
+                } else if (tunnelDepth > ringCount - 1) {
+                    // Use stars for the outer edge
+                    charSection = 3; // Stars section in character array
+                    charIndex = charSection * 21 + Math.floor(value * 21 * config.density);
+                } else {
+                    // Use geometric symbols for the general tunnel
+                    charSection = 5; // Diamonds and geometric section
+                    const patternValue = (value + (angle / (Math.PI * 2))) % 1; // Create spiral pattern
+                    charIndex = charSection * 14 + Math.floor(patternValue * 14 * config.density);
+                }
+                
+                // Ensure the character index doesn't exceed array bounds
+                charIndex = Math.min(charIndex, config.characters.length - 1);
                 
                 characterGrid[y][x] = {
-                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
-                    hue: getHue(x, y, distance, normalizedValue),
+                    character: config.characters[charIndex],
+                    hue: getHue(x, y, distance, value),
                     saturation: config.saturation,
-                    lightness: 50 + normalizedValue * 30
+                    lightness: 50 + value * 30
                 };
             }
         }
@@ -223,25 +288,59 @@ const animations = [
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 const angle = Math.atan2(dy, dx);
                 
-                // Create wormhole with oscillating tunnel walls
+                // Create wormhole with oscillating tunnel walls - slower animation
                 const waveFrequency = 6; // Controls how wavy the tunnel is
-                const waveAmplitude = 0.5; // Controls wave height
-                const zoomFactor = 8 * config.speed;
+                const waveAmplitude = 0.7; // Increased from 0.5 to 0.7 for more pronounced waves
+                const zoomFactor = 3 * config.speed; // Reduced from 8 to 3
                 
-                // Modify the tunnel based on sine waves along the angle
-                const waveEffect = Math.sin(angle * waveFrequency + time * 2 * config.speed) * waveAmplitude;
-                const tunnelRadius = distance + waveEffect * distance * 0.2;
-                const tunnelDepth = (tunnelRadius + time * zoomFactor) % 6;
+                // Add time-based color pulsing effects
+                const timePulse = Math.sin(time * 1.5 * config.speed) * 0.5 + 0.5;
                 
-                const value = tunnelDepth / 6;
-                const normalizedValue = value;
-                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                // Create more complex wave patterns
+                const primaryWave = Math.sin(angle * waveFrequency + time * 0.8 * config.speed) * waveAmplitude;
+                const secondaryWave = Math.cos(angle * (waveFrequency/2) - time * 0.5 * config.speed) * (waveAmplitude * 0.5);
+                const combinedWave = primaryWave + secondaryWave;
+                
+                // Calculate effective tunnel radius with the wave effect
+                const tunnelRadius = distance + combinedWave * distance * 0.3;
+                const ringCount = 8; // More defined rings
+                const tunnelDepth = (tunnelRadius + time * zoomFactor) % ringCount;
+                
+                // Specialized character selection for wormhole
+                let charIndex;
+                
+                // Select different character sets for different parts of the wormhole
+                if (distance < 10) {
+                    // Center of wormhole uses circular elements
+                    const centerPattern = Math.floor((angle / (Math.PI * 2) * 18) + time * 5) % 18;
+                    charIndex = 28 + centerPattern; // Rounded elements section (indexes 28-46)
+                } else {
+                    // Outer parts use wave-like characters
+                    const section = Math.floor(angle / (Math.PI/4)) % 8;
+                    
+                    if (tunnelDepth < 1) {
+                        // Wormhole walls use math/wave symbols
+                        charIndex = 146 + (section % 6); // Wave/ripple section
+                    } else if (section % 2 === 0) {
+                        // Alternate between arrows and geometric shapes
+                        charIndex = 40 + Math.floor(timePulse * 19); // Arrows section
+                    } else {
+                        // Use floral/ornate characters 
+                        charIndex = 34 + Math.floor((tunnelDepth / ringCount) * 12);
+                    }
+                }
+                
+                // Ensure the index is within bounds
+                charIndex = Math.min(Math.max(0, charIndex), config.characters.length - 1);
+                
+                // Add visual depth by adjusting lightness based on tunnel depth
+                const depthLightness = 40 + (tunnelDepth / ringCount) * 40;
                 
                 characterGrid[y][x] = {
-                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
-                    hue: getHue(x, y, tunnelRadius, normalizedValue),
+                    character: config.characters[charIndex],
+                    hue: getHue(x, y, tunnelRadius, timePulse),
                     saturation: config.saturation,
-                    lightness: 50 + normalizedValue * 30
+                    lightness: depthLightness
                 };
             }
         }
