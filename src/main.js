@@ -51,8 +51,8 @@ export class AsciiDelic {
         this.engine.setAnimation(animations[0].id);
         this.updateAnimationInfo(0);
         
-        // Initialize mode (default to manual)
-        this.updateModeDisplay(false);
+        // Initialize mode based on config
+        this.updateModeDisplay(this.engine.config.isAutomatedMode);
         
         // Start animation loop
         this.engine.start();
@@ -246,9 +246,9 @@ export class AsciiDelic {
         
         // In automated mode, we only show animation type controls
         if (isAutomated) {
-            this.controlsHint.textContent = '↑/↓: Change pattern | M: Toggle manual mode';
+            this.controlsHint.textContent = '↑/↓: Change pattern | M: Manual';
         } else {
-            this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density | M: Toggle automated mode';
+            this.controlsHint.textContent = '↑/↓: Pattern | ←/→: Colors | Space: Mode | +/-: Speed | S/D: Density | M: Auto';
         }
     }
 
