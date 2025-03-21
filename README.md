@@ -27,7 +27,7 @@ That's it! No build process or dependencies required.
 
 | Key | Action |
 |-----|--------|
-| ↑/↓ | Change animation pattern |
+| ↑/↓ | Previous/next animation pattern |
 | ←/→ | Shift color hue |
 | Space | Cycle through color modes |
 | +/- | Increase/decrease animation speed |
