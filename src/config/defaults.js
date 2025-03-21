@@ -28,7 +28,16 @@ export const defaultConfig = {
     // Automated mode settings
     automationSpeed: 0.5, // How quickly parameters change in automated mode
     nextTransitionTime: 0, // When to change to the next parameter set
-    transitionDuration: 5, // Seconds between parameter changes
+    transitionDuration: 15, // Seconds between parameter changes
+    transitionProgress: 0, // Current progress of the transition (0-1)
+    
+    // Target values for smooth transitions
+    targetSpeed: 1.0,
+    targetDensity: 0.6,
+    targetColorMode: 0,
+    
+    // Transition settings
+    transitionStep: 0.01, // How much to increment transition progress each frame
 };
 
 /**
