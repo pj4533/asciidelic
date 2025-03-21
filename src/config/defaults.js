@@ -8,7 +8,7 @@ export const defaultConfig = {
     animationSpeed: 60, // Frame rate in FPS
     
     // Mode settings
-    isAutomatedMode: false, // false: manual, true: automated parameter changes
+    isAutomatedMode: true, // false: manual, true: automated parameter changes
     
     // Animation control
     animationType: 0,

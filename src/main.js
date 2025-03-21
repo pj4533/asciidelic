@@ -190,42 +190,23 @@ export class AsciiDelic {
         this.controlsHint.id = 'controls-hint';
         this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density';
         
-        // Create mode toggle button
-        this.modeToggleButton = document.createElement('button');
-        this.modeToggleButton.id = 'mode-toggle';
-        this.modeToggleButton.textContent = 'Switch to Automated';
-        this.modeToggleButton.addEventListener('click', () => this.toggleMode());
-        
         // Create mode indicator
         this.modeIndicator = document.createElement('div');
         this.modeIndicator.id = 'mode-indicator';
-        this.modeIndicator.className = 'mode manual';
-        this.modeIndicator.textContent = 'Manual Mode';
+        this.modeIndicator.className = 'mode automated';
+        this.modeIndicator.textContent = 'Automated Mode';
         
         // Append elements
         this.infoElement.appendChild(this.animationNameElement);
         this.infoElement.appendChild(this.modeIndicator);
         this.infoElement.appendChild(this.controlsHint);
-        this.infoElement.appendChild(this.modeToggleButton);
         
         // Append to container parent
         this.container.parentElement.appendChild(this.infoElement);
         
-        // Add CSS for the mode toggle
+        // Add CSS for the mode indicator
         const style = document.createElement('style');
         style.textContent = `
-            #mode-toggle {
-                margin: 10px 0;
-                padding: 5px 10px;
-                background: #222;
-                color: #0f0;
-                border: 1px solid #0f0;
-                cursor: pointer;
-                font-family: monospace;
-            }
-            #mode-toggle:hover {
-                background: #333;
-            }
             #mode-indicator {
                 font-weight: bold;
                 margin-bottom: 5px;
@@ -263,14 +244,11 @@ export class AsciiDelic {
         this.modeIndicator.textContent = isAutomated ? 'Automated Mode' : 'Manual Mode';
         this.modeIndicator.className = isAutomated ? 'mode automated' : 'mode manual';
         
-        // Update the toggle button text
-        this.modeToggleButton.textContent = isAutomated ? 'Switch to Manual' : 'Switch to Automated';
-        
         // In automated mode, we only show animation type controls
         if (isAutomated) {
-            this.controlsHint.textContent = '↑/↓: Change pattern | Switch to Manual to adjust parameters';
+            this.controlsHint.textContent = '↑/↓: Change pattern | M: Toggle manual mode';
         } else {
-            this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density';
+            this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density | M: Toggle automated mode';
         }
     }
 
