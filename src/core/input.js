@@ -135,11 +135,11 @@ export class InputManager {
     setupDefaultBindings(setAnimationType, updateConfig) {
         // Animation navigation
         this.bindKey('ArrowUp', () => {
-            updateConfig({ animationType: (config) => (config.animationType - 1 + 7) % 7 });
+            updateConfig({ animationType: (config) => (config.animationType - 1 + 6) % 6 });
         });
         
         this.bindKey('ArrowDown', () => {
-            updateConfig({ animationType: (config) => (config.animationType + 1) % 7 });
+            updateConfig({ animationType: (config) => (config.animationType + 1) % 6 });
         });
         
         // Color control
