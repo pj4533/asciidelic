@@ -77,45 +77,16 @@ export function getAllCharacters() {
 }
 
 /**
- * Animation definitions
+ * Default animation - the ID of the animation to show on startup
  */
-export const animations = [
-    {
-        id: 'plasma',
-        name: 'Plasma',
-        description: 'A plasma-like effect with flowing patterns',
-    },
-    {
-        id: 'waves',
-        name: 'Waves',
-        description: 'Concentric wave patterns that ripple outward',
-    },
-    {
-        id: 'spiral',
-        name: 'Spiral',
-        description: 'Spiral patterns that rotate around the center',
-    },
-    {
-        id: 'classicTunnel',
-        name: 'Classic Tunnel',
-        description: 'A classic tunnel effect with zooming rings',
-    },
-    {
-        id: 'mandala',
-        name: 'Mandala',
-        description: 'Circular patterns that form mandala-like designs',
-    },
-    {
-        id: 'vortexTunnel',
-        name: 'Vortex Tunnel',
-        description: 'A tunnel with rotating vortex effects',
-    },
-    {
-        id: 'wormhole',
-        name: 'Wormhole',
-        description: 'A wormhole with oscillating tunnel walls',
-    }
-];
+export const DEFAULT_ANIMATION = 'plasma';
+
+/**
+ * Default initial config values
+ */
+export const initialConfig = {
+    animationId: DEFAULT_ANIMATION,  // ID of the initial animation to show
+};
 
 /**
  * Color modes

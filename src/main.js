@@ -4,7 +4,7 @@
 import { AsciiEngine } from './core/engine.js';
 import { InputManager } from './core/input.js';
 import { animations } from './animations/index.js';
-import { defaultConfig, animations as animationsMeta, colorModes } from './config/defaults.js';
+import { defaultConfig, DEFAULT_ANIMATION, initialConfig, colorModes } from './config/defaults.js';
 
 export class AsciiDelic {
     /**
@@ -47,9 +47,14 @@ export class AsciiDelic {
         // Create UI elements
         this.createUI();
         
+        // Find the default animation index
+        const defaultAnimationIndex = animations.findIndex(anim => anim.id === DEFAULT_ANIMATION);
+        const animIndex = defaultAnimationIndex >= 0 ? defaultAnimationIndex : 0;
+        
         // Set initial animation
-        this.engine.setAnimation(animations[0].id);
-        this.updateAnimationInfo(0);
+        this.engine.setAnimation(animations[animIndex].id);
+        this.engine.updateConfig({ animationType: animIndex });
+        this.updateAnimationInfo(animIndex);
         
         // Initialize mode based on config
         this.updateModeDisplay(this.engine.config.isAutomatedMode);
