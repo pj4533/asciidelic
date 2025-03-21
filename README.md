@@ -1,11 +1,16 @@
 # AsciiDelic
 
+![AsciiDelic Screenshot](./asciidelic.png)
+
 AsciiDelic is an interactive ASCII art animation engine that renders colorful, dynamic visualizations using ASCII characters in your browser. Create mesmerizing patterns with various effects and styles for a unique retro-digital art experience.
+
+**[Try it live: asciidelic.com](https://asciidelic.com)**
 
 ## 🌟 Features
 
-- **7 Animation Types**: Choose from waves, spirals, tunnels, plasma, mandalas, vortex, and wormhole
+- **6 Animation Types**: Plasma, Lava Lamp, Nebula, Flow Field, Cellular, and Cloud Formations
 - **Interactive Controls**: Easily change patterns, colors, speed, and density
+- **Dual-Mode Interface**: Switch between automated and manual parameter control
 - **Multiple Color Modes**: Rainbow, monochrome, complementary, and gradient
 - **Rich Character Sets**: Various ASCII characters create different visual textures
 - **Responsive Design**: Adapts to different screen sizes
@@ -28,10 +33,11 @@ That's it! No build process or dependencies required.
 | Key | Action |
 |-----|--------|
 | ↑/↓ | Previous/next animation pattern |
-| ←/→ | Shift color hue |
-| Space | Cycle through color modes |
-| +/- | Increase/decrease animation speed |
-| S/D | Decrease/increase character density |
+| ←/→ | Shift color hue (manual mode) |
+| Space | Cycle through color modes (manual mode) |
+| +/- | Increase/decrease animation speed (manual mode) |
+| S/D | Decrease/increase character density (manual mode) |
+| M | Toggle between automated and manual modes |
 
 ## 🧩 Project Structure
 
@@ -39,13 +45,18 @@ That's it! No build process or dependencies required.
 asciidelic/
 ├── src/
 │   ├── animations/     # Animation effects
-│   │   └── plasma/     # Plasma-based animations
-│   │       └── lavalamp/  # Lava lamp components
+│   │   ├── plasma/     # Plasma-based animations
+│   │   │   └── lavalamp/  # Lava lamp components
+│   │   └── tunnels/    # Tunnel-based animations
 │   ├── config/         # Default configurations 
 │   ├── core/           # Engine components
 │   │   └── automation/ # Automated parameter management
 │   ├── ui/             # User interface components
+│   │   ├── inputManager.js  # Keyboard and touch input handling
+│   │   └── uiManager.js     # UI display management
 │   └── utils/          # Helper functions
+│       ├── color.js    # Color manipulation utilities
+│       └── math.js     # Math helper functions
 ├── index.html          # Main entry point
 └── styles.css          # Basic styling
 ```
