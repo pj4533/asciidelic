@@ -122,23 +122,23 @@ export const animations = [
  */
 export const colorModes = [
     {
-        id: 'rainbow',
-        name: 'Rainbow',
-        description: 'Full spectrum color cycling'
+        id: 'vibrantRainbow',
+        name: 'Vibrant Rainbow',
+        description: 'Full spectrum with dynamic variations'
     },
     {
-        id: 'monochrome',
-        name: 'Monochrome',
-        description: 'Single color with variations'
+        id: 'multiGradient',
+        name: 'Multi-Color',
+        description: 'Wide gradient with time effects'
     },
     {
-        id: 'complementary',
-        name: 'Complementary',
-        description: 'Two colors opposite on the color wheel'
+        id: 'triadic',
+        name: 'Triadic',
+        description: 'Three evenly spaced colors'
     },
     {
-        id: 'gradient',
-        name: 'Gradient',
-        description: 'Smooth gradient between related colors'
+        id: 'colorWave',
+        name: 'Color Wave',
+        description: 'Undulating wave of vibrant colors'
     }
 ];

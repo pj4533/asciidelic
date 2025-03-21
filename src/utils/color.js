@@ -66,16 +66,18 @@ export class ColorManager {
      */
     getHue(x, y, distance, value, time = 0) {
         switch(this.colorMode) {
-            case 0: // Rainbow - full spectrum
-                return (this.baseHue + distance * 5 + time * 10) % 360;
-            case 1: // Monochrome - variations on base hue
-                return this.baseHue;
-            case 2: // Complementary - base hue and opposite
-                return value > 0.5 ? this.baseHue : (this.baseHue + 180) % 360;
-            case 3: // Gradient between two hues
-                return this.baseHue + value * 60; // 60 degree spread
+            case 0: // Vibrant Rainbow - full spectrum with time variation
+                return (this.baseHue + distance * 5 + time * 10 + Math.sin(time * 2) * 30) % 360;
+            case 1: // Multi-Color Gradient - vibrant spread
+                return (this.baseHue + value * 120 + time * 5) % 360; // 120 degree spread
+            case 2: // Triadic - base hue plus two colors evenly spaced
+                // Use distance to determine which of the three colors to use
+                const segment = Math.floor(value * 3);
+                return (this.baseHue + segment * 120 + time * 3) % 360;
+            case 3: // Color Wave - undulating colors
+                return (this.baseHue + Math.sin(distance + time) * 60 + time * 15) % 360;
             default:
-                return this.baseHue;
+                return (this.baseHue + Math.sin(time) * 30) % 360;
         }
     }
 
