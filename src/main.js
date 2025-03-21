@@ -273,18 +273,47 @@ export class AsciiDelic {
      */
     updateAnimationInfo(index) {
         if (this.animationNameElement) {
-            // Always show the animation name
-            let infoText = `Animation: ${animations[index].name}`;
-            
-            // In manual mode, also show the parameter values
-            if (!this.engine.config.isAutomatedMode) {
-                const colorModeName = this.getColorModeName(this.engine.config.colorMode);
-                infoText += ` | Color: ${colorModeName} (${Math.round(this.engine.config.targetHue)}°)`;
-                infoText += ` | Speed: ${this.engine.config.speed.toFixed(1)}`;
-                infoText += ` | Density: ${this.engine.config.density.toFixed(1)}`;
+            // Clear any existing elements
+            while (this.animationNameElement.firstChild) {
+                this.animationNameElement.removeChild(this.animationNameElement.firstChild);
             }
             
-            this.animationNameElement.textContent = infoText;
+            // Create animation name element with main style
+            const animName = document.createElement('div');
+            animName.className = 'anim-name';
+            animName.textContent = `Animation: ${animations[index].name}`;
+            this.animationNameElement.appendChild(animName);
+            
+            // In manual mode, also show the parameter values in smaller text
+            if (!this.engine.config.isAutomatedMode) {
+                const colorModeName = this.getColorModeName(this.engine.config.colorMode);
+                
+                const paramText = document.createElement('div');
+                paramText.className = 'param-text';
+                paramText.textContent = `Color: ${colorModeName} (${Math.round(this.engine.config.targetHue)}°) | ` +
+                                        `Speed: ${this.engine.config.speed.toFixed(1)} | ` +
+                                        `Density: ${this.engine.config.density.toFixed(1)}`;
+                
+                this.animationNameElement.appendChild(paramText);
+                
+                // Add style for parameter text if not already added
+                if (!document.getElementById('param-text-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'param-text-style';
+                    style.textContent = `
+                        .anim-name {
+                            margin-bottom: 5px;
+                            font-weight: bold;
+                        }
+                        .param-text {
+                            font-size: 0.85em;
+                            color: #aaa;
+                            margin-top: 2px;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            }
         }
     }
     

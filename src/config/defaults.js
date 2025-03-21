@@ -81,6 +81,11 @@ export function getAllCharacters() {
  */
 export const animations = [
     {
+        id: 'plasma',
+        name: 'Plasma',
+        description: 'A plasma-like effect with flowing patterns',
+    },
+    {
         id: 'waves',
         name: 'Waves',
         description: 'Concentric wave patterns that ripple outward',
@@ -94,11 +99,6 @@ export const animations = [
         id: 'classicTunnel',
         name: 'Classic Tunnel',
         description: 'A classic tunnel effect with zooming rings',
-    },
-    {
-        id: 'plasma',
-        name: 'Plasma',
-        description: 'A plasma-like effect with flowing patterns',
     },
     {
         id: 'mandala',
