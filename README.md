@@ -39,11 +39,14 @@ That's it! No build process or dependencies required.
 asciidelic/
 ├── src/
 │   ├── animations/     # Animation effects
+│   │   └── plasma/     # Plasma-based animations
+│   │       └── lavalamp/  # Lava lamp components
 │   ├── config/         # Default configurations 
 │   ├── core/           # Engine components
+│   │   └── automation/ # Automated parameter management
+│   ├── ui/             # User interface components
 │   └── utils/          # Helper functions
 ├── index.html          # Main entry point
-├── script.js           # Application loader
 └── styles.css          # Basic styling
 ```
 
