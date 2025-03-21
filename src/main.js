@@ -51,6 +51,9 @@ export class AsciiDelic {
         this.engine.setAnimation(animations[0].id);
         this.updateAnimationInfo(0);
         
+        // Initialize mode (default to manual)
+        this.updateModeDisplay(false);
+        
         // Start animation loop
         this.engine.start();
     }
@@ -72,7 +75,7 @@ export class AsciiDelic {
      * Set up input bindings
      */
     setupInputBindings() {
-        // Animation navigation
+        // Animation navigation - always active regardless of mode
         this.inputManager.bindKey('ArrowUp', () => {
             const currentIdx = this.engine.config.animationType;
             const newIdx = (currentIdx + 1) % animations.length;
@@ -89,53 +92,84 @@ export class AsciiDelic {
             this.updateAnimationInfo(newIdx);
         });
         
-        // Color control
+        // Mode toggle with keyboard
+        this.inputManager.bindKey('m', () => {
+            this.toggleMode();
+        });
+        
+        this.inputManager.bindKey('M', () => {
+            this.toggleMode();
+        });
+        
+        // Color control - only in manual mode
         this.inputManager.bindKey('ArrowRight', () => {
-            this.engine.updateConfig({ targetHue: (this.engine.config.targetHue + 30) % 360 });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ targetHue: (this.engine.config.targetHue + 30) % 360 });
+            }
         });
         
         this.inputManager.bindKey('ArrowLeft', () => {
-            this.engine.updateConfig({ targetHue: (this.engine.config.targetHue - 30 + 360) % 360 });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ targetHue: (this.engine.config.targetHue - 30 + 360) % 360 });
+            }
         });
         
-        // Color mode
+        // Color mode - only in manual mode
         this.inputManager.bindKey(' ', () => {
-            const newMode = (this.engine.config.colorMode + 1) % 4;
-            this.engine.updateConfig({ colorMode: newMode });
+            if (!this.engine.config.isAutomatedMode) {
+                const newMode = (this.engine.config.colorMode + 1) % 4;
+                this.engine.updateConfig({ colorMode: newMode });
+            }
         });
         
-        // Speed control
+        // Speed control - only in manual mode
         this.inputManager.bindKey('+', () => {
-            this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+            }
         });
         
         this.inputManager.bindKey('=', () => {
-            this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+            }
         });
         
         this.inputManager.bindKey('-', () => {
-            this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+            }
         });
         
         this.inputManager.bindKey('_', () => {
-            this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+            }
         });
         
-        // Density control
+        // Density control - only in manual mode
         this.inputManager.bindKey('d', () => {
-            this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+            }
         });
         
         this.inputManager.bindKey('D', () => {
-            this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+            }
         });
         
         this.inputManager.bindKey('s', () => {
-            this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+            }
         });
         
         this.inputManager.bindKey('S', () => {
-            this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+            if (!this.engine.config.isAutomatedMode) {
+                this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+            }
         });
     }
 
@@ -152,16 +186,92 @@ export class AsciiDelic {
         this.animationNameElement.id = 'animation-name';
         
         // Create controls hint
-        const controlsHint = document.createElement('div');
-        controlsHint.id = 'controls-hint';
-        controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density';
+        this.controlsHint = document.createElement('div');
+        this.controlsHint.id = 'controls-hint';
+        this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density';
+        
+        // Create mode toggle button
+        this.modeToggleButton = document.createElement('button');
+        this.modeToggleButton.id = 'mode-toggle';
+        this.modeToggleButton.textContent = 'Switch to Automated';
+        this.modeToggleButton.addEventListener('click', () => this.toggleMode());
+        
+        // Create mode indicator
+        this.modeIndicator = document.createElement('div');
+        this.modeIndicator.id = 'mode-indicator';
+        this.modeIndicator.className = 'mode manual';
+        this.modeIndicator.textContent = 'Manual Mode';
         
         // Append elements
         this.infoElement.appendChild(this.animationNameElement);
-        this.infoElement.appendChild(controlsHint);
+        this.infoElement.appendChild(this.modeIndicator);
+        this.infoElement.appendChild(this.controlsHint);
+        this.infoElement.appendChild(this.modeToggleButton);
         
         // Append to container parent
         this.container.parentElement.appendChild(this.infoElement);
+        
+        // Add CSS for the mode toggle
+        const style = document.createElement('style');
+        style.textContent = `
+            #mode-toggle {
+                margin: 10px 0;
+                padding: 5px 10px;
+                background: #222;
+                color: #0f0;
+                border: 1px solid #0f0;
+                cursor: pointer;
+                font-family: monospace;
+            }
+            #mode-toggle:hover {
+                background: #333;
+            }
+            #mode-indicator {
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+            .mode.manual {
+                color: #0f0;
+            }
+            .mode.automated {
+                color: #f90;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    /**
+     * Toggle between automated and manual modes
+     */
+    toggleMode() {
+        const currentMode = this.engine.config.isAutomatedMode;
+        const newMode = !currentMode;
+        
+        // Toggle the mode in the engine
+        const configSnapshot = this.engine.toggleAutomatedMode(newMode);
+        
+        // Update the UI to reflect the new mode
+        this.updateModeDisplay(newMode);
+    }
+    
+    /**
+     * Update the UI to reflect the current mode
+     * @param {boolean} isAutomated - Whether we're in automated mode
+     */
+    updateModeDisplay(isAutomated) {
+        // Update the mode indicator text and class
+        this.modeIndicator.textContent = isAutomated ? 'Automated Mode' : 'Manual Mode';
+        this.modeIndicator.className = isAutomated ? 'mode automated' : 'mode manual';
+        
+        // Update the toggle button text
+        this.modeToggleButton.textContent = isAutomated ? 'Switch to Manual' : 'Switch to Automated';
+        
+        // In automated mode, we only show animation type controls
+        if (isAutomated) {
+            this.controlsHint.textContent = '↑/↓: Change pattern | Switch to Manual to adjust parameters';
+        } else {
+            this.controlsHint.textContent = '↑/↓: Change pattern | ←/→: Shift colors | Space: Color mode | +/-: Speed | S/D: Density';
+        }
     }
 
     /**

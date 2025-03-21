@@ -7,6 +7,9 @@ export const defaultConfig = {
     height: 40,
     animationSpeed: 60, // Frame rate in FPS
     
+    // Mode settings
+    isAutomatedMode: false, // false: manual, true: automated parameter changes
+    
     // Animation control
     animationType: 0,
     speed: 1.0, // animation speed multiplier
@@ -21,6 +24,11 @@ export const defaultConfig = {
     hueTransitionSpeed: 0.05,
     saturation: 100,
     lightness: 50,
+    
+    // Automated mode settings
+    automationSpeed: 0.5, // How quickly parameters change in automated mode
+    nextTransitionTime: 0, // When to change to the next parameter set
+    transitionDuration: 5, // Seconds between parameter changes
 };
 
 /**

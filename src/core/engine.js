@@ -138,6 +138,11 @@ export class AsciiEngine {
         // Update color transitions
         this.colorManager.update(deltaTime);
         
+        // Handle automated parameter changes if enabled
+        if (this.config.isAutomatedMode) {
+            this.updateAutomatedParameters(deltaTime);
+        }
+        
         // Run the current animation
         if (this.currentAnimation && typeof this.currentAnimation.fn === 'function') {
             this.currentAnimation.fn(
@@ -149,6 +154,71 @@ export class AsciiEngine {
                 this.colorManager
             );
         }
+    }
+    
+    /**
+     * Update parameters automatically in automated mode
+     * @param {number} deltaTime - Time since last update in seconds
+     */
+    updateAutomatedParameters(deltaTime) {
+        // Check if it's time for a parameter change
+        if (this.time >= this.config.nextTransitionTime) {
+            // Set the next transition time
+            this.config.nextTransitionTime = this.time + this.config.transitionDuration;
+            
+            // Randomly change parameters
+            // Speed changes
+            const newSpeed = 0.5 + Math.random() * 2.0; // Between 0.5 and 2.5
+            this.updateConfig({ speed: newSpeed });
+            
+            // Density changes
+            const newDensity = 0.3 + Math.random() * 0.6; // Between 0.3 and 0.9
+            this.updateConfig({ density: newDensity });
+            
+            // Color mode changes - occasionally change color mode
+            if (Math.random() < 0.3) { // 30% chance to change color mode
+                const newColorMode = Math.floor(Math.random() * 4); // 0-3
+                this.updateConfig({ colorMode: newColorMode });
+            }
+            
+            // Hue changes - always change the target hue for smooth transitions
+            const newHue = Math.floor(Math.random() * 360);
+            this.updateConfig({ targetHue: newHue });
+            
+            // Color transition speed changes
+            const newTransitionSpeed = 0.02 + Math.random() * 0.08; // Between 0.02 and 0.1
+            this.updateConfig({ hueTransitionSpeed: newTransitionSpeed });
+            
+            // Occasionally select different character sets
+            if (Math.random() < 0.4) { // 40% chance to change characters
+                // Get all character set names
+                const charSetNames = Object.keys(this.characters);
+                if (charSetNames.length > 0) {
+                    // Select a random character set
+                    const randomSetName = charSetNames[Math.floor(Math.random() * charSetNames.length)];
+                    this.currentCharacterSet = randomSetName;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Toggle between automated and manual modes
+     * @param {boolean} isAutomated - Whether to enable automated mode
+     * @returns {Object} - Current configuration snapshot for reference
+     */
+    toggleAutomatedMode(isAutomated) {
+        // Save current configuration as a snapshot if going from automated to manual
+        const configSnapshot = { ...this.config };
+        
+        // Update the mode
+        this.updateConfig({ 
+            isAutomatedMode: isAutomated,
+            // Reset transition timer when entering automated mode
+            nextTransitionTime: isAutomated ? this.time : 0
+        });
+        
+        return configSnapshot;
     }
 
     /**
