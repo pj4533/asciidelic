@@ -4,7 +4,7 @@
 import { AsciiEngine } from './core/engine.js';
 import { InputManager } from './core/input.js';
 import { animations } from './animations/index.js';
-import { defaultConfig, animations as animationsMeta } from './config/defaults.js';
+import { defaultConfig, animations as animationsMeta, colorModes } from './config/defaults.js';
 
 export class AsciiDelic {
     /**
@@ -105,12 +105,14 @@ export class AsciiDelic {
         this.inputManager.bindKey('ArrowRight', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ targetHue: (this.engine.config.targetHue + 30) % 360 });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('ArrowLeft', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ targetHue: (this.engine.config.targetHue - 30 + 360) % 360 });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
@@ -119,6 +121,7 @@ export class AsciiDelic {
             if (!this.engine.config.isAutomatedMode) {
                 const newMode = (this.engine.config.colorMode + 1) % 4;
                 this.engine.updateConfig({ colorMode: newMode });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
@@ -126,24 +129,28 @@ export class AsciiDelic {
         this.inputManager.bindKey('+', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('=', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('-', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('_', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
@@ -151,24 +158,28 @@ export class AsciiDelic {
         this.inputManager.bindKey('d', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('D', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('s', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
         
         this.inputManager.bindKey('S', () => {
             if (!this.engine.config.isAutomatedMode) {
                 this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
+                this.updateAnimationInfo(this.engine.config.animationType);
             }
         });
     }
@@ -233,6 +244,10 @@ export class AsciiDelic {
         
         // Update the UI to reflect the new mode
         this.updateModeDisplay(newMode);
+        
+        // Update animation info to show parameters if in manual mode
+        const currentIdx = this.engine.config.animationType;
+        this.updateAnimationInfo(currentIdx);
     }
     
     /**
@@ -258,8 +273,31 @@ export class AsciiDelic {
      */
     updateAnimationInfo(index) {
         if (this.animationNameElement) {
-            this.animationNameElement.textContent = `Animation: ${animations[index].name}`;
+            // Always show the animation name
+            let infoText = `Animation: ${animations[index].name}`;
+            
+            // In manual mode, also show the parameter values
+            if (!this.engine.config.isAutomatedMode) {
+                const colorModeName = this.getColorModeName(this.engine.config.colorMode);
+                infoText += ` | Color: ${colorModeName} (${Math.round(this.engine.config.targetHue)}°)`;
+                infoText += ` | Speed: ${this.engine.config.speed.toFixed(1)}`;
+                infoText += ` | Density: ${this.engine.config.density.toFixed(1)}`;
+            }
+            
+            this.animationNameElement.textContent = infoText;
         }
+    }
+    
+    /**
+     * Get the name of the current color mode
+     * @param {number} modeIndex - Color mode index
+     * @returns {string} Color mode name
+     */
+    getColorModeName(modeIndex) {
+        if (colorModes && colorModes[modeIndex]) {
+            return colorModes[modeIndex].name;
+        }
+        return 'Unknown';
     }
 }
 
