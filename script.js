@@ -90,69 +90,34 @@ const animations = [
         }
     },
     
-    // Matrix style
-    function matrixAnimation() {
-        // Shift everything down one row
-        for (let y = config.height - 1; y > 0; y--) {
-            for (let x = 0; x < config.width; x++) {
-                characterGrid[y][x] = {...characterGrid[y-1][x]};
-            }
-        }
+    // Classic Tunnel
+    function classicTunnelAnimation() {
+        const centerX = config.width / 2;
+        const centerY = config.height / 2;
         
-        // Generate new top row
-        for (let x = 0; x < config.width; x++) {
-            const shouldActivate = Math.random() < 0.1 * config.speed;
-            if (shouldActivate || characterGrid[1][x].character !== ' ') {
-                const intensity = Math.random();
-                const charIndex = Math.floor(intensity * config.characters.length * config.density);
-                
-                characterGrid[0][x] = {
-                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
-                    hue: getHue(x, 0, x, intensity),
-                    saturation: config.saturation,
-                    lightness: 50 + intensity * 30
-                };
-            } else {
-                characterGrid[0][x] = {
-                    character: ' ',
-                    hue: config.baseHue,
-                    saturation: 0,
-                    lightness: 0
-                };
-            }
-        }
-    },
-    
-    // Bubbles/particles
-    function bubblesAnimation() {
-        // Fade out existing characters
         for (let y = 0; y < config.height; y++) {
             for (let x = 0; x < config.width; x++) {
-                if (characterGrid[y][x].character !== ' ') {
-                    characterGrid[y][x].lightness -= 2 * config.speed;
-                    if (characterGrid[y][x].lightness <= 0) {
-                        characterGrid[y][x].character = ' ';
-                    }
-                }
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+                
+                // Create tunnel effect with zooming rings
+                const zoomFactor = 10 * config.speed; // Controls zoom speed
+                const ringSpacing = 4; // Controls spacing between rings
+                const tunnelDepth = (distance + time * zoomFactor) % ringSpacing;
+                const value = (tunnelDepth / ringSpacing);
+                
+                const normalizedValue = value; 
+                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                
+                characterGrid[y][x] = {
+                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
+                    hue: getHue(x, y, distance, normalizedValue),
+                    saturation: config.saturation,
+                    lightness: 50 + normalizedValue * 30
+                };
             }
-        }
-        
-        // Add new bubbles
-        for (let i = 0; i < 5 * config.speed; i++) {
-            const x = Math.floor(Math.random() * config.width);
-            const y = Math.floor(Math.random() * config.height);
-            const charIndex = Math.floor(Math.random() * config.characters.length * config.density);
-            const distance = Math.sqrt(
-                Math.pow(x - config.width / 2, 2) + 
-                Math.pow(y - config.height / 2, 2)
-            );
-            
-            characterGrid[y][x] = {
-                character: charIndex < config.characters.length ? config.characters[charIndex] : '·',
-                hue: getHue(x, y, distance, Math.random()),
-                saturation: config.saturation,
-                lightness: 70 + Math.random() * 30
-            };
         }
     },
     
@@ -210,44 +175,73 @@ const animations = [
         }
     },
     
-    // Rain effect
-    function rainAnimation() {
-        // Shift everything down one row but with random droplets
-        for (let y = config.height - 1; y > 0; y--) {
+    // Vortex Tunnel
+    function vortexTunnelAnimation() {
+        const centerX = config.width / 2;
+        const centerY = config.height / 2;
+        
+        for (let y = 0; y < config.height; y++) {
             for (let x = 0; x < config.width; x++) {
-                if (Math.random() < 0.9) {  // 90% chance to move down
-                    characterGrid[y][x] = {...characterGrid[y-1][x]};
-                } else {
-                    // Sometimes introduce trail effect
-                    if (characterGrid[y-1][x].character !== ' ') {
-                        characterGrid[y][x] = {
-                            character: '·',
-                            hue: characterGrid[y-1][x].hue,
-                            saturation: characterGrid[y-1][x].saturation,
-                            lightness: characterGrid[y-1][x].lightness * 0.7
-                        };
-                    }
-                }
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                let angle = Math.atan2(dy, dx);
+                
+                // Create spinning tunnel effect
+                const rotationSpeed = 1.5 * config.speed;
+                const zoomFactor = 5 * config.speed;
+                
+                // Add rotation to the angle based on time and distance from center
+                angle += time * rotationSpeed * (1 - Math.min(1, distance / (config.width / 2)));
+                
+                // Create tunnel depth effect with both angle and distance
+                const tunnelDepth = (distance - time * zoomFactor + angle * 0.5) % 8;
+                const value = (tunnelDepth / 8);
+                
+                const normalizedValue = value;
+                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                
+                characterGrid[y][x] = {
+                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
+                    hue: getHue(x, y, distance, normalizedValue),
+                    saturation: config.saturation,
+                    lightness: 50 + normalizedValue * 30
+                };
             }
         }
+    },
+    
+    // Wormhole
+    function wormholeAnimation() {
+        const centerX = config.width / 2;
+        const centerY = config.height / 2;
         
-        // Generate new top row - raindrops
-        for (let x = 0; x < config.width; x++) {
-            const shouldRain = Math.random() < 0.03 * config.speed;
-            if (shouldRain) {
-                const intensity = Math.random();
-                characterGrid[0][x] = {
-                    character: '|',
-                    hue: getHue(x, 0, x % 30, intensity),
+        for (let y = 0; y < config.height; y++) {
+            for (let x = 0; x < config.width; x++) {
+                const dx = x - centerX;
+                const dy = y - centerY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx);
+                
+                // Create wormhole with oscillating tunnel walls
+                const waveFrequency = 6; // Controls how wavy the tunnel is
+                const waveAmplitude = 0.5; // Controls wave height
+                const zoomFactor = 8 * config.speed;
+                
+                // Modify the tunnel based on sine waves along the angle
+                const waveEffect = Math.sin(angle * waveFrequency + time * 2 * config.speed) * waveAmplitude;
+                const tunnelRadius = distance + waveEffect * distance * 0.2;
+                const tunnelDepth = (tunnelRadius + time * zoomFactor) % 6;
+                
+                const value = tunnelDepth / 6;
+                const normalizedValue = value;
+                const charIndex = Math.floor(normalizedValue * config.characters.length * config.density);
+                
+                characterGrid[y][x] = {
+                    character: charIndex < config.characters.length ? config.characters[charIndex] : ' ',
+                    hue: getHue(x, y, tunnelRadius, normalizedValue),
                     saturation: config.saturation,
-                    lightness: 70 + intensity * 30
-                };
-            } else {
-                characterGrid[0][x] = {
-                    character: ' ',
-                    hue: config.baseHue,
-                    saturation: 0,
-                    lightness: 0
+                    lightness: 50 + normalizedValue * 30
                 };
             }
         }
@@ -360,8 +354,8 @@ window.onload = () => {
     
     // Add animation name display
     const animationNames = [
-        'Waves', 'Spiral', 'Matrix', 'Bubbles', 
-        'Plasma', 'Mandala', 'Rain'
+        'Waves', 'Spiral', 'Classic Tunnel', 
+        'Plasma', 'Mandala', 'Vortex Tunnel', 'Wormhole'
     ];
     
     // Create animation info display
