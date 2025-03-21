@@ -78,22 +78,22 @@ export class InputManager {
     }
     
     /**
-     * Handle animation up (next animation)
+     * Handle animation up (previous animation)
      */
     handleAnimationUp() {
         const currentIdx = this.engine.config.animationType;
-        const newIdx = (currentIdx + 1) % this.animations.length;
+        const newIdx = (currentIdx - 1 + this.animations.length) % this.animations.length;
         this.engine.updateConfig({ animationType: newIdx });
         this.engine.setAnimation(this.animations[newIdx].id);
         this.uiManager.updateAnimationDisplay(newIdx, this.animations, this.engine.config);
     }
     
     /**
-     * Handle animation down (previous animation)
+     * Handle animation down (next animation)
      */
     handleAnimationDown() {
         const currentIdx = this.engine.config.animationType;
-        const newIdx = (currentIdx - 1 + this.animations.length) % this.animations.length;
+        const newIdx = (currentIdx + 1) % this.animations.length;
         this.engine.updateConfig({ animationType: newIdx });
         this.engine.setAnimation(this.animations[newIdx].id);
         this.uiManager.updateAnimationDisplay(newIdx, this.animations, this.engine.config);
