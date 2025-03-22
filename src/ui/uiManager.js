@@ -15,102 +15,28 @@ export class UIManager {
         this.toggleMode = toggleModeCallback;
         this.updateAnimationInfo = updateAnimationInfoCallback;
         
-        // UI elements
-        this.infoElement = null;
-        this.animationNameElement = null;
-        this.controlsHint = null;
-        this.modeIndicator = null;
-        this.messageElement = null;
+        // Store references to the DOM elements
+        this.elements = {
+            animationName: document.getElementById('animation-name'),
+            modeDisplay: document.getElementById('mode-display'),
+            keyCommands: document.getElementById('key-commands'),
+            parameterDisplay: document.getElementById('parameter-display')
+        };
         
-        // Controls for different modes - defined once to ensure consistency
-        this.automatedModeControls = '↑/↓: Change pattern | R: Randomize | M: Manual mode';
-        this.manualModeControls = '↑/↓: Pattern | ←/→: Colors | Space: Color mode | +/-: Speed | S/D: Density | R: Randomize | M: Auto mode';
-        
-        // Initialize UI
-        this.createUI();
-    }
-    
-    /**
-     * Create UI elements
-     */
-    createUI() {
-        // Create temporary message element (for notifications)
-        this.messageElement = document.createElement('div');
-        this.messageElement.id = 'temp-message';
-        this.messageElement.style.display = 'none'; // Hidden by default
-        
-        // Get existing elements from the HTML (fail-proof approach)
-        this.modeDisplay = document.getElementById('mode-display');
-        
-        // Find the existing controls container
-        const controlsContainer = document.getElementById('controls-container');
-        
-        // Add the message element to the controls container
-        if (controlsContainer) {
-            controlsContainer.appendChild(this.messageElement);
-        }
-        
-        // Remove old info element if it exists (to avoid duplicate controls)
-        const oldInfo = document.querySelector('.info');
-        if (oldInfo && oldInfo.parentNode) {
-            oldInfo.parentNode.removeChild(oldInfo);
-        }
-        
-        // Add CSS for messages
-        this.addStyles();
-    }
-    
-    /**
-     * Add CSS styles for message element
-     */
-    addStyles() {
-        // Only add styles that aren't already in the main CSS file
-        const style = document.createElement('style');
-        style.textContent = `
-            #temp-message {
-                font-weight: bold;
-                color: #ff3366;
-                margin: 10px 0;
-                opacity: 1;
-                transition: opacity 0.5s ease-out;
-                text-align: center;
-            }
-            #temp-message.fade-out {
-                opacity: 0;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
-    /**
-     * Show a temporary message that disappears after a specified time
-     * @param {string} message - Message to display
-     * @param {number} duration - Time in milliseconds before the message disappears
-     */
-    showTemporaryMessage(message, duration = 2000) {
-        if (!this.messageElement) return;
-        
-        // Clear any previous timeout
-        if (this.messageTimeout) {
-            clearTimeout(this.messageTimeout);
-            this.messageElement.classList.remove('fade-out');
-        }
-        
-        // Show the message
-        this.messageElement.textContent = message;
-        this.messageElement.style.display = 'block';
-        
-        // Set timeout to hide the message
-        this.messageTimeout = setTimeout(() => {
-            // Fade out then hide
-            this.messageElement.classList.add('fade-out');
-            
-            // After fade animation, hide completely
-            setTimeout(() => {
-                this.messageElement.style.display = 'none';
-                this.messageElement.classList.remove('fade-out');
-            }, 500);
-        }, duration);
+        // Store the commands by mode
+        this.commandsByMode = {
+            common: [
+                { key: '↑/↓', action: 'Change animation', className: 'common-command' },
+                { key: 'R', action: 'Randomize', className: 'common-command' },
+                { key: 'M', action: 'Toggle mode', className: 'common-command' }
+            ],
+            manual: [
+                { key: '←/→', action: 'Change hue', className: 'manual-command' },
+                { key: 'Space', action: 'Color mode', className: 'manual-command' },
+                { key: '+/-', action: 'Speed', className: 'manual-command' },
+                { key: 'S/D', action: 'Density', className: 'manual-command' }
+            ]
+        };
     }
     
     /**
@@ -118,62 +44,69 @@ export class UIManager {
      * @param {boolean} isAutomated - Whether we're in automated mode
      */
     updateModeDisplay(isAutomated) {
-        // Update the mode display if it exists
-        if (this.modeDisplay) {
-            this.modeDisplay.textContent = isAutomated ? 'Automated Mode' : 'Manual Mode';
-            this.modeDisplay.style.color = isAutomated ? '#f90' : '#0f0';
+        // Update the mode text and class
+        if (this.elements.modeDisplay) {
+            this.elements.modeDisplay.textContent = isAutomated ? 'Automated Mode' : 'Manual Mode';
+            this.elements.modeDisplay.className = isAutomated ? 'automated-mode' : 'manual-mode';
         }
         
-        // Instead of updating controls hint, show a temporary message about mode change
-        const message = isAutomated ? 'Switched to Automated Mode' : 'Switched to Manual Mode';
-        this.showTemporaryMessage(message, 1500);
-        
-        // Update commands display with key commands relevant to the current mode
+        // Update key commands
         this.updateKeyCommands(isAutomated);
+        
+        // Clear and update parameter display
+        this.clearParameterDisplay();
+        
+        // Show parameter display if in manual mode
+        if (!isAutomated && this.elements.parameterDisplay) {
+            this.updateParameterDisplay(this.getConfig());
+        }
     }
     
     /**
-     * Updates the key commands displayed based on mode
+     * Get current config from parent component
+     * @returns {Object} Current configuration
+     */
+    getConfig() {
+        if (this.updateAnimationInfo && typeof this.updateAnimationInfo === 'function') {
+            return this.updateAnimationInfo();
+        }
+        return {};
+    }
+    
+    /**
+     * Update the list of key commands based on the current mode
      * @param {boolean} isAutomated - Whether we're in automated mode
      */
     updateKeyCommands(isAutomated) {
-        const keyCommandsDiv = document.getElementById('key-commands');
-        if (!keyCommandsDiv) return;
+        const keyCommandsEl = this.elements.keyCommands;
+        if (!keyCommandsEl) return;
         
         // Clear existing commands
-        keyCommandsDiv.innerHTML = '';
-        
-        // Common commands for both modes
-        const commonCommands = [
-            '↑/↓: Change animation',
-            'R: Randomize',
-            'M: Toggle mode'
-        ];
+        keyCommandsEl.innerHTML = '';
         
         // Add common commands
-        commonCommands.forEach(cmd => {
-            const span = document.createElement('span');
-            span.className = 'key-command';
-            span.textContent = cmd;
-            keyCommandsDiv.appendChild(span);
+        this.commandsByMode.common.forEach(cmd => {
+            keyCommandsEl.appendChild(this.createCommandElement(cmd));
         });
         
-        // Add mode-specific commands for manual mode
+        // Add manual mode commands if in manual mode
         if (!isAutomated) {
-            const manualCommands = [
-                '←/→: Colors',
-                'Space: Color mode',
-                '+/-: Speed',
-                'S/D: Density'
-            ];
-            
-            manualCommands.forEach(cmd => {
-                const span = document.createElement('span');
-                span.className = 'key-command manual-command';
-                span.textContent = cmd;
-                keyCommandsDiv.appendChild(span);
+            this.commandsByMode.manual.forEach(cmd => {
+                keyCommandsEl.appendChild(this.createCommandElement(cmd));
             });
         }
+    }
+    
+    /**
+     * Create a command element
+     * @param {Object} command - Command data
+     * @returns {HTMLElement} Command element
+     */
+    createCommandElement(command) {
+        const element = document.createElement('div');
+        element.className = `key-command ${command.className}`;
+        element.innerHTML = `<span class="key">${command.key}</span>: ${command.action}`;
+        return element;
     }
     
     /**
@@ -183,28 +116,77 @@ export class UIManager {
      * @param {Object} config - Current configuration
      */
     updateAnimationDisplay(index, animations, config) {
-        // Find the animation name container in the new UI structure
-        const animationInfo = document.getElementById('controls');
-        if (!animationInfo || !animations[index]) return;
-        
-        // Update the title element or add a title if it doesn't exist
-        let titleElement = document.querySelector('.current-animation');
-        if (!titleElement) {
-            titleElement = document.createElement('div');
-            titleElement.className = 'current-animation';
-            animationInfo.insertBefore(titleElement, animationInfo.firstChild);
+        // Update animation name
+        if (this.elements.animationName && animations[index]) {
+            this.elements.animationName.textContent = animations[index].name;
         }
         
-        // Set the animation name
-        titleElement.textContent = `Animation: ${animations[index].name}`;
-        
-        // Show a temporary message when animation changes
-        this.showTemporaryMessage(`Changed to ${animations[index].name}`, 1000);
+        // Update parameter display for manual mode
+        if (!config.isAutomatedMode) {
+            this.updateParameterDisplay(config);
+        }
     }
     
     /**
-     * Add parameter display for manual mode - Not used in new UI
+     * Clear the parameter display
      */
+    clearParameterDisplay() {
+        if (this.elements.parameterDisplay) {
+            this.elements.parameterDisplay.innerHTML = '';
+            this.elements.parameterDisplay.style.display = 'none';
+        }
+    }
+    
+    /**
+     * Update the parameter display for manual mode
+     * @param {Object} config - Current configuration
+     */
+    updateParameterDisplay(config) {
+        const paramEl = this.elements.parameterDisplay;
+        if (!paramEl) return;
+        
+        // Clear existing parameters
+        paramEl.innerHTML = '';
+        paramEl.style.display = 'flex';
+        
+        // Add parameters
+        const parameters = [
+            { name: 'Speed', value: config.speed.toFixed(1) },
+            { name: 'Density', value: config.density.toFixed(1) },
+            { name: 'Hue', value: Math.round(config.targetHue) + '°' },
+            { name: 'Color Mode', value: this.getColorModeName(config.colorMode) }
+        ];
+        
+        parameters.forEach(param => {
+            const paramElement = document.createElement('div');
+            paramElement.className = 'parameter';
+            
+            const nameElement = document.createElement('div');
+            nameElement.className = 'parameter-name';
+            nameElement.textContent = param.name;
+            
+            const valueElement = document.createElement('div');
+            valueElement.className = 'parameter-value';
+            valueElement.textContent = param.value;
+            
+            paramElement.appendChild(nameElement);
+            paramElement.appendChild(valueElement);
+            paramEl.appendChild(paramElement);
+        });
+    }
+    
+    /**
+     * Update UI when a parameter changes
+     * @param {Object} config - Current configuration
+     * @param {string} paramName - Name of the parameter that changed
+     * @param {*} value - New value of the parameter
+     */
+    updateParameterChange(config, paramName, value) {
+        // Only update parameter display in manual mode
+        if (!config.isAutomatedMode) {
+            this.updateParameterDisplay(config);
+        }
+    }
     
     /**
      * Get the name of the current color mode

@@ -99,6 +99,7 @@ export class AutomationManager {
     /**
      * Randomize all parameters at once
      * Creates dramatic instant changes for visual impact
+     * @returns {Object} The randomized parameters
      */
     randomizeAllParameters() {
         // Generate completely random values (not gradual changes)
@@ -120,19 +121,28 @@ export class AutomationManager {
         
         // Update all parameters at once
         this.updateConfig({
+            // Apply speed change immediately and as a target
+            speed: randomSpeed,
             targetSpeed: randomSpeed,
+            
+            // Apply density change immediately and as a target
+            density: randomDensity,
             targetDensity: randomDensity,
-            colorMode: randomColorMode, // Apply immediately
+            
+            // Apply color mode immediately
+            colorMode: randomColorMode,
             targetColorMode: randomColorMode,
+            
+            // Apply hue change immediately and as a target
+            baseHue: randomHue,
             targetHue: randomHue,
+            
+            // Set faster transition for more dramatic effect
             hueTransitionSpeed: randomTransitionSpeed,
+            
             // Reset transition so changes start taking effect immediately
             transitionProgress: 0
         });
-        
-        // Optionally, you could also randomize the animation type:
-        // const randomAnimation = Math.floor(Math.random() * [number of animations]);
-        // this.updateConfig({ animationType: randomAnimation });
         
         return {
             speed: randomSpeed,

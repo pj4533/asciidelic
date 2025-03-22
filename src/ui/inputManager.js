@@ -145,7 +145,7 @@ export class InputManager {
         this.bindKey('m', this.handleModeToggle.bind(this));
         this.bindKey('M', this.handleModeToggle.bind(this));
         
-        // Randomize parameters in automated mode
+        // Randomize parameters
         this.bindKey('r', this.handleRandomize.bind(this));
         this.bindKey('R', this.handleRandomize.bind(this));
         
@@ -190,6 +190,8 @@ export class InputManager {
      * @param {number} index - Index of the animation to switch to
      */
     changeAnimation(index) {
+        if (index < 0 || index >= this.animations.length) return;
+        
         this.engine.updateConfig({ animationType: index });
         this.engine.setAnimation(this.animations[index].id);
         this.uiManager.updateAnimationDisplay(index, this.animations, this.engine.config);
@@ -214,8 +216,9 @@ export class InputManager {
      */
     handleColorRight() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ targetHue: (this.engine.config.targetHue + 30) % 360 });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newHue = (this.engine.config.targetHue + 30) % 360;
+            this.engine.updateConfig({ targetHue: newHue });
+            this.uiManager.updateParameterChange(this.engine.config, 'targetHue', newHue);
         }
     }
     
@@ -224,8 +227,9 @@ export class InputManager {
      */
     handleColorLeft() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ targetHue: (this.engine.config.targetHue - 30 + 360) % 360 });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newHue = (this.engine.config.targetHue - 30 + 360) % 360;
+            this.engine.updateConfig({ targetHue: newHue });
+            this.uiManager.updateParameterChange(this.engine.config, 'targetHue', newHue);
         }
     }
     
@@ -236,7 +240,7 @@ export class InputManager {
         if (!this.engine.config.isAutomatedMode) {
             const newMode = (this.engine.config.colorMode + 1) % 4;
             this.engine.updateConfig({ colorMode: newMode });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            this.uiManager.updateParameterChange(this.engine.config, 'colorMode', newMode);
         }
     }
     
@@ -245,8 +249,9 @@ export class InputManager {
      */
     handleSpeedIncrease() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ speed: Math.min(this.engine.config.speed + 0.1, 3.0) });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newSpeed = Math.min(this.engine.config.speed + 0.1, 3.0);
+            this.engine.updateConfig({ speed: newSpeed });
+            this.uiManager.updateParameterChange(this.engine.config, 'speed', newSpeed);
         }
     }
     
@@ -255,8 +260,9 @@ export class InputManager {
      */
     handleSpeedDecrease() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ speed: Math.max(this.engine.config.speed - 0.1, 0.2) });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newSpeed = Math.max(this.engine.config.speed - 0.1, 0.2);
+            this.engine.updateConfig({ speed: newSpeed });
+            this.uiManager.updateParameterChange(this.engine.config, 'speed', newSpeed);
         }
     }
     
@@ -265,8 +271,9 @@ export class InputManager {
      */
     handleDensityIncrease() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ density: Math.min(this.engine.config.density + 0.1, 1.0) });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newDensity = Math.min(this.engine.config.density + 0.1, 1.0);
+            this.engine.updateConfig({ density: newDensity });
+            this.uiManager.updateParameterChange(this.engine.config, 'density', newDensity);
         }
     }
     
@@ -275,35 +282,23 @@ export class InputManager {
      */
     handleDensityDecrease() {
         if (!this.engine.config.isAutomatedMode) {
-            this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
-            this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+            const newDensity = Math.max(this.engine.config.density - 0.1, 0.1);
+            this.engine.updateConfig({ density: newDensity });
+            this.uiManager.updateParameterChange(this.engine.config, 'density', newDensity);
         }
     }
     
     /**
      * Handle randomize request
-     * Randomizes all parameters when in automated mode for dramatic visual changes
+     * Randomizes all parameters regardless of mode
      */
     handleRandomize() {
-        // This should work in both modes to randomly change parameters
-        // But is especially useful in automated mode
         if (this.engine.automationManager) {
             const newParams = this.engine.automationManager.randomizeAllParameters();
             
-            // Flash message to user indicating randomization happened
-            this.uiManager.showTemporaryMessage('✨ Parameters Randomized! ✨', 1500);
-            
-            // Update UI display with new parameters
-            this.uiManager.updateAnimationDisplay(
-                this.engine.config.animationType, 
-                this.animations, 
-                this.engine.config
-            );
-            
-            // If in manual mode, refresh control display to show new values
-            if (!this.engine.config.isAutomatedMode) {
-                this.uiManager.updateModeDisplay(false);
-            }
+            // Update UI to show parameters
+            const currentIdx = this.engine.config.animationType;
+            this.uiManager.updateAnimationDisplay(currentIdx, this.animations, this.engine.config);
         }
     }
 }

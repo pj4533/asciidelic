@@ -10,9 +10,9 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    overflow: hidden;
     font-family: monospace;
     color: #fff;
+    overflow: hidden;
 }
 
 #container {
@@ -20,11 +20,12 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    max-width: 100%;
+    max-width: 95%;
+    max-height: 98vh;
 }
 
 h1 {
-    font-size: 2em;
+    font-size: 1.8em;
     margin-bottom: 10px;
     text-shadow: 0 0 10px rgba(120, 220, 255, 0.8);
     opacity: 0.8;
@@ -33,88 +34,161 @@ h1 {
 }
 
 #ascii-art {
-    font-size: 14px;
+    font-size: 12px;
     line-height: 1;
     white-space: pre;
     color: #fff;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
     transition: color 0.5s ease;
-    margin: 20px 0;
+    margin: 10px 0;
+    max-height: 60vh;
 }
 
-.info {
-    position: absolute;
-    bottom: -60px;
+/* Controls Container */
+#controls-container {
     width: 100%;
+    margin-top: 10px;
     text-align: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Animation Info */
+#animation-info {
+    margin-bottom: 5px;
 }
 
 #animation-name {
     font-size: 16px;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.8);
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
-#controls-hint {
-    font-size: 12px;
-    opacity: 0.6;
-}
-
-/* New controls styling */
-#controls-container {
-    width: 100%;
-    margin-top: 20px;
-    text-align: center;
-}
-
-#controls {
-    display: inline-block;
+/* Controls Panel */
+#controls-panel {
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    padding: 10px 15px;
-    margin-bottom: 15px;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 300px;
+    max-width: 90%;
 }
 
-.current-animation {
+/* Mode Display */
+#mode-display {
+    font-size: 14px;
     font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 10px;
-    color: rgba(255, 255, 255, 0.9);
-    text-align: center;
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: color 0.3s ease;
 }
 
+.automated-mode {
+    color: #f90;
+}
+
+.manual-mode {
+    color: #0f0;
+}
+
+/* Key Commands */
 #key-commands {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 15px;
+    gap: 8px;
     margin-bottom: 8px;
-    padding: 0 10px;
 }
 
 .key-command {
-    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 5px 8px;
+    border-radius: 4px;
     font-weight: bold;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.key-command:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.common-command {
+    color: #fff;
 }
 
 .manual-command {
     color: #0f0;
 }
 
-#mode-display {
-    color: #f90;
+/* Parameter Display */
+#parameter-display {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 5px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.parameter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 5px;
+}
+
+.parameter-name {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-bottom: 2px;
+}
+
+.parameter-value {
+    font-size: 14px;
     font-weight: bold;
+    color: #0f0;
+}
+
+/* Responsive Adjustments */
+@media (max-height: 700px) {
+    h1 {
+        font-size: 1.5em;
+        margin-bottom: 5px;
+    }
+    
+    #ascii-art {
+        font-size: 10px;
+        margin: 5px 0;
+        max-height: 55vh;
+    }
+    
+    .key-command {
+        padding: 3px 6px;
+        font-size: 11px;
+    }
 }
 
 @media (max-width: 600px) {
     #ascii-art {
-        font-size: 10px;
+        font-size: 9px;
     }
     
     h1 {
-        font-size: 1.5em;
+        font-size: 1.4em;
+    }
+    
+    #controls-panel {
+        min-width: auto;
+        padding: 8px;
+    }
+    
+    .key-command {
+        padding: 3px 5px;
+        font-size: 10px;
     }
 }

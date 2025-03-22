@@ -38,20 +38,21 @@ export class AsciiDelic {
         // Register all animations
         this.registerAnimations();
         
-        // Create UI components
+        // Create UI manager
+        const controlsContainer = document.getElementById('controls-container');
         this.uiManager = new UIManager(
-            this.container, 
+            controlsContainer, 
             this.toggleMode.bind(this), 
             this.updateAnimationInfo.bind(this)
         );
         
-        // Create input manager
+        // Create input manager with animations
         this.inputManager = new InputManager(this.engine, this.uiManager, animations);
         
-        // Initialize with Lava Lamp
+        // Initialize with default animation
         this.initializeDefaultAnimation();
         
-        // Initialize mode based on config
+        // Initialize UI based on current mode
         this.uiManager.updateModeDisplay(this.engine.config.isAutomatedMode);
         
         // Start animation loop
@@ -59,23 +60,24 @@ export class AsciiDelic {
     }
     
     /**
-     * Initialize the default animation (Lava Lamp)
+     * Initialize the default animation
      */
     initializeDefaultAnimation() {
-        // Find the lava lamp animation in the animations array
-        const lavaLampIndex = animations.findIndex(anim => anim.id === DEFAULT_ANIMATION); // 'lavalamp'
+        // Find the default animation in the animations array
+        const defaultAnimIndex = animations.findIndex(anim => anim.id === DEFAULT_ANIMATION);
         
-        if (lavaLampIndex !== -1) {
+        if (defaultAnimIndex !== -1) {
             // First set the animation directly
             this.engine.setAnimation(DEFAULT_ANIMATION);
             
             // Then set animationType to match so UI and keyboard navigation work correctly
-            this.engine.updateConfig({ animationType: lavaLampIndex });
+            this.engine.updateConfig({ animationType: defaultAnimIndex });
             
             // Update the UI to show the current animation
-            this.updateAnimationInfo(lavaLampIndex);
+            this.updateAnimationInfo(defaultAnimIndex);
         } else {
-            // Fallback if lava lamp animation not found
+            // Fallback to the first animation if default not found
+            console.warn(`Default animation '${DEFAULT_ANIMATION}' not found, using first available.`);
             this.engine.setAnimation(animations[0].id);
             this.engine.updateConfig({ animationType: 0 });
             this.updateAnimationInfo(0);
@@ -103,7 +105,7 @@ export class AsciiDelic {
         const newMode = !currentMode;
         
         // Toggle the mode in the engine
-        const configSnapshot = this.engine.toggleAutomatedMode(newMode);
+        this.engine.toggleAutomatedMode(newMode);
         
         // Update the UI to reflect the new mode
         this.uiManager.updateModeDisplay(newMode);
@@ -118,7 +120,10 @@ export class AsciiDelic {
      * @param {number} index - Animation index
      */
     updateAnimationInfo(index) {
-        this.uiManager.updateAnimationDisplay(index, animations, this.engine.config);
+        // Validate index
+        if (index >= 0 && index < animations.length) {
+            this.uiManager.updateAnimationDisplay(index, animations, this.engine.config);
+        }
     }
 }
 
