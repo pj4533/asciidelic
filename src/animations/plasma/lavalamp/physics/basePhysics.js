@@ -35,8 +35,11 @@ export function applyPhysics(blobSystem, time, deltaTime, colorTime) {
         
         // Remove expired blobs or force remove oldest ones if we have too many
         if (blob.age >= blob.lifespan || (blobs.length > blobSystem.maxBlobs * 0.9 && i < 3)) {
-            blobs.splice(i, 1);
-            continue;
+            // Only remove if completely faded out
+            if (blob.opacity <= 0.01) {
+                blobs.splice(i, 1);
+                continue;
+            }
         }
         
         // Calculate life phase (0-1)
@@ -47,7 +50,7 @@ export function applyPhysics(blobSystem, time, deltaTime, colorTime) {
             // Fade in
             blob.opacity = lifePhase / 0.1;
         } else if (lifePhase > 0.9) {
-            // Fade out
+            // Fade out gradually
             blob.opacity = (1 - lifePhase) / 0.1;
         } else {
             blob.opacity = 1;
