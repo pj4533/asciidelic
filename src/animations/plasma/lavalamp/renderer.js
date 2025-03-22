@@ -225,7 +225,7 @@ function applySimpleBlur(buffer, width, height) {
  */
 function renderCell(grid, x, y, value, time, blobs, colorManager) {
     // Calculate display character index based on value
-    const normValue = Math.min(1, value * 1.1); // Slightly boost for better visuals
+    const normValue = Math.min(1, value * 1.2); // Boost for better visuals
     const charIndex = Math.floor(normValue * (plasmaChars.length - 1));
     const char = normValue > 0.05 ? plasmaChars[plasmaChars.length - 1 - charIndex] : bgChars[Math.floor(Math.random() * bgChars.length)];
     
@@ -246,20 +246,54 @@ function renderCell(grid, x, y, value, time, blobs, colorManager) {
     // Set color based on the dominant blob or background
     let hue, saturation, lightness;
     
+    // Calculate distance from center for color variation
+    const distance = Math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2) * 2; // 0-1 distance from center
+    
     if (dominantBlob && maxInfluence > 0.1) {
-        // Use blob's color with adjustments based on value
+        // Use dominant blob's color, which is already synced with colorManager
+        // in the updateBlobColor function
         hue = dominantBlob.hue;
-        saturation = dominantBlob.saturation;
-        lightness = Math.min(90, dominantBlob.lightness + normValue * 30);
         
-        // Add flow pattern variations
-        const flowOffset = Math.sin(nx * 4 + ny * 5 + time) * 10;
-        hue = (hue + flowOffset) % 360;
+        // Apply color mode variation based on colorManager's mode
+        switch (colorManager.colorMode) {
+            case 0: // Vibrant Rainbow
+                // Keep the blob's color but add animation-based shift for psychedelic effect
+                const flowOffset = Math.sin(nx * 6 + ny * 8 + time * 0.5) * 15;
+                hue = (hue + flowOffset) % 360;
+                break;
+                
+            case 1: // Multi-Color Gradient
+                // Stronger gradient influence for more vibrant colors
+                const gradientHue = colorManager.getHue(nx, ny, distance, normValue, time);
+                hue = (hue * 0.6 + gradientHue * 0.4) % 360;
+                break;
+                
+            case 2: // Triadic
+                // Enhanced triadic with slight variations
+                const baseTriad = Math.round(hue / 120) * 120;
+                hue = (baseTriad + colorManager.baseHue % 120 + Math.sin(time + nx * 10) * 10) % 360;
+                break;
+                
+            case 3: // Color Wave
+                // Stronger wave pattern for more psychedelic effect
+                const waveInfluence = Math.sin(distance * 4 + time * 0.3) * 0.5 + 0.5;
+                const waveHue = colorManager.getHue(nx, ny, distance, waveInfluence, time);
+                hue = (hue * 0.6 + waveHue * 0.4) % 360;
+                break;
+        }
+        
+        // Higher saturation and lightness for more psychedelic, vivid colors
+        // Much less dependency on colorManager for these values to maintain vibrance
+        saturation = Math.min(100, Math.max(80, colorManager.saturation * 0.3 + 70)); // At least 80% saturation
+        
+        // Brighter core, less dependency on colorManager lightness which may be low
+        const baseLightness = Math.min(85, Math.max(50, colorManager.lightness + 20)); // Ensure at least 50%
+        lightness = Math.min(95, baseLightness + normValue * 20); // Higher lightness boost
     } else {
-        // Background color with ambient variation
-        hue = (time * 10 + nx * 60 + ny * 30) % 360;
-        saturation = 50;
-        lightness = Math.max(5, Math.min(30, normValue * 50));
+        // Background uses colorManager's color scheme but more vivid
+        hue = colorManager.getHue(nx, ny, distance, normValue, time);
+        saturation = Math.min(100, colorManager.saturation * 0.7 + 30); // Higher saturation floor
+        lightness = Math.max(15, Math.min(40, normValue * 70)); // Brighter background
     }
     
     // Set the cell

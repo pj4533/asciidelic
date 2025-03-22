@@ -6,16 +6,23 @@ import { lerp, random, smootherStep } from '../../../utils/math.js';
 /**
  * Apply physics to all blobs in the system
  * @param {Object} blobSystem - Blob system with blobs array
- * @param {number} time - Current time
+ * @param {number} time - Current time for motion
  * @param {number} deltaTime - Time elapsed since last frame
+ * @param {number} colorTime - Separate time value for color calculations
  */
-export function applyPhysics(blobSystem, time, deltaTime) {
+export function applyPhysics(blobSystem, time, deltaTime, colorTime) {
     const { blobs } = blobSystem;
     const dt = Math.min(deltaTime, 0.1); // Cap delta time to prevent instability
+    
+    // Store the separate color time in the blob system
+    blobSystem.colorTime = colorTime || time;
     
     // Update existing blobs
     for (let i = blobs.length - 1; i >= 0; i--) {
         const blob = blobs[i];
+        
+        // Store reference to blob system for colorManager access
+        blob.system = blobSystem;
         
         // Update age
         blob.age += dt;
@@ -63,8 +70,8 @@ export function applyPhysics(blobSystem, time, deltaTime) {
         // Update blob shape
         updateBlobShape(blob, time, dt);
         
-        // Update colors
-        updateBlobColor(blob, time, dt);
+        // Update colors using colorTime (separate from motion time)
+        updateBlobColor(blob, blobSystem.colorTime, dt);
     }
     
     // Spawn new blobs if needed
@@ -156,27 +163,57 @@ function updateBlobShape(blob, time, dt) {
  * @param {number} dt - Delta time
  */
 function updateBlobColor(blob, time, dt) {
-    // Slightly shift hue over time
-    blob.hue += blob.hueShift * dt;
+    // Get color manager from blob system if we're in a system context
+    const colorManager = blob.system?.colorManager;
     
-    // Keep hue in valid range
-    if (blob.hue > 360) blob.hue -= 360;
-    if (blob.hue < 0) blob.hue += 360;
-    
-    // Occasionally pick a new hue shift direction
-    if (Math.random() < 0.01) {
-        blob.hueShift = random(-5, 5);
+    if (colorManager) {
+        // Adjust target colors to stay in theme with color manager
+        const nx = blob.x;
+        const ny = blob.y;
+        const distance = Math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2) * 2;
+        const value = blob.age / blob.lifespan; // Use life phase as a value parameter
+        
+        // Calculate base hue from color manager (respects color mode)
+        const baseHue = colorManager.getHue(nx, ny, distance, value, time);
+        
+        // Adjust the blob's hue to orbit around the base hue from color manager
+        const currentHueDiff = ((blob.hue - baseHue + 540) % 360) - 180;
+        
+        // If the hue is far from the base, pull it closer
+        if (Math.abs(currentHueDiff) > 30) {
+            blob.hue = (blob.hue + (baseHue - blob.hue) * 0.02 * dt) % 360;
+            if (blob.hue < 0) blob.hue += 360;
+        } else {
+            // Otherwise apply small hue shift over time
+            blob.hue += blob.hueShift * dt;
+            if (blob.hue > 360) blob.hue -= 360;
+            if (blob.hue < 0) blob.hue += 360;
+        }
+        
+        // Set saturation and lightness targets from color manager
+        blob.targetSaturation = colorManager.saturation * (0.7 + random(0, 0.3));
+        blob.targetLightness = colorManager.lightness * (0.8 + random(0, 0.4));
+    } else {
+        // Original behavior if no color manager
+        blob.hue += blob.hueShift * dt;
+        if (blob.hue > 360) blob.hue -= 360;
+        if (blob.hue < 0) blob.hue += 360;
+        
+        // Occasionally adjust saturation and lightness targets
+        if (Math.random() < 0.005) {
+            blob.targetSaturation = random(70, 100);
+            blob.targetLightness = random(40, 70);
+        }
     }
     
-    // Occasionally adjust saturation and lightness targets
-    if (Math.random() < 0.005) {
-        blob.targetSaturation = random(70, 100);
-        blob.targetLightness = random(40, 70);
+    // Occasionally pick a new hue shift direction (less frequent for more stability)
+    if (Math.random() < 0.003) {
+        blob.hueShift = random(-3, 3);
     }
     
-    // Move current values toward targets
-    blob.saturation = lerp(blob.saturation, blob.targetSaturation, 0.1 * dt);
-    blob.lightness = lerp(blob.lightness, blob.targetLightness, 0.1 * dt);
+    // Move current values toward targets (more slowly)
+    blob.saturation = lerp(blob.saturation, blob.targetSaturation, 0.05 * dt);
+    blob.lightness = lerp(blob.lightness, blob.targetLightness, 0.05 * dt);
 }
 
 /**
@@ -185,14 +222,14 @@ function updateBlobColor(blob, time, dt) {
  * @param {number} time - Current time
  */
 function spawnNewBlobs(blobSystem, time) {
-    const { blobs, maxBlobs, lastSpawnTime } = blobSystem;
+    const { blobs, maxBlobs, lastSpawnTime, colorManager } = blobSystem;
     
     // Initial blob generation - ensure we have at least a minimum number of blobs
     if (blobs.length < 10) {
         // Create multiple blobs at once for initial population
         const numToCreate = 10 - blobs.length;
         for (let i = 0; i < numToCreate; i++) {
-            blobs.push(createBlob(time + i * 0.1));
+            blobs.push(createBlob(time + i * 0.1, colorManager));
         }
         blobSystem.lastSpawnTime = time;
         return;
@@ -204,17 +241,18 @@ function spawnNewBlobs(blobSystem, time) {
     
     if (shouldSpawn) {
         // Create a new blob
-        blobs.push(createBlob(time));
+        blobs.push(createBlob(time, colorManager));
         blobSystem.lastSpawnTime = time;
     }
 }
 
 /**
- * Create a new blob with random properties
+ * Create a new blob with properties based on colorManager
  * @param {number} time - Current time
+ * @param {Object} colorManager - Color manager for consistent theming
  * @returns {Object} A new blob
  */
-function createBlob(time) {
+function createBlob(time, colorManager) {
     // Base properties
     const size = random(0.1, 0.3); // Increased max size from 0.25 to 0.3
     const lifespan = random(20, 40); // Increased from 15-30 to 20-40 for longer-lived blobs
@@ -227,10 +265,36 @@ function createBlob(time) {
     const vx = random(-0.05, 0.05);
     const vy = random(-0.05, 0.05);
     
-    // Color properties
-    const hue = random(0, 360);
-    const saturation = random(70, 100);
-    const lightness = random(40, 70);
+    // Color properties based on colorManager
+    let hue, saturation, lightness;
+    
+    if (colorManager) {
+        // Use colorTime from the blobSystem if available
+        const colorTime = colorManager.blobSystem?.colorTime || time;
+        
+        // Calculate a position-based value for color determination
+        const nx = x;
+        const ny = y;
+        const distance = Math.sqrt((nx - 0.5) ** 2 + (ny - 0.5) ** 2) * 2; // 0-1 distance from center
+        const value = random(0, 1);
+        
+        // Use colorManager's color scheme
+        hue = colorManager.getHue(nx, ny, distance, value, colorTime);
+        
+        // Add more variation for psychedelic effect but still stay within theme
+        hue = (hue + random(-25, 25)) % 360;
+        
+        // Higher saturation range for more vivid colors (80-100%)
+        saturation = Math.min(100, Math.max(80, colorManager.saturation * 0.3 + random(60, 80)));
+        
+        // Higher lightness range for brighter blobs (50-80%)
+        lightness = Math.min(80, Math.max(50, colorManager.lightness * 0.4 + random(40, 60)));
+    } else {
+        // Fallback to random if no colorManager
+        hue = random(0, 360);
+        saturation = random(80, 100); // Higher saturation for psychedelic effect
+        lightness = random(50, 80); // Brighter for more vivid effect
+    }
     
     // Create vertices for morphing shape
     const vertexCount = 8;
@@ -258,7 +322,7 @@ function createBlob(time) {
         hue, saturation, lightness, // HSL color values
         targetSaturation: saturation, // Target saturation
         targetLightness: lightness, // Target lightness
-        hueShift: random(-5, 5), // Rate of hue change
+        hueShift: random(-3, 3), // Rate of hue change
         pulsePhase: random(0, Math.PI * 2), // Current pulse phase
         pulseRate: random(0.5, 2), // Rate of size pulsing
         morphRate: random(0.3, 1.2) // Rate of shape morphing
