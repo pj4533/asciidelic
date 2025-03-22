@@ -8,7 +8,7 @@ AsciiDelic is an interactive ASCII art animation engine that renders colorful, d
 
 ## 🌟 Features
 
-- **10+ Animation Types**: Lava Lamp (default), Plasma, Nebula, Flow Field, Cellular, Cloud Formations, Spiral, Waves, Mandala, and multiple Tunnel variations
+- **6 Animation Types**: Lava Lamp (default), Plasma, Nebula, Flow Field, Cellular, and Cloud Formations
 - **Interactive Controls**: Easily change patterns, colors, speed, and density
 - **Dual-Mode Interface**: Switch between automated and manual parameter control
 - **Randomize Function**: Instantly create new visual combinations
@@ -47,9 +47,8 @@ That's it! No build process or dependencies required.
 asciidelic/
 ├── src/
 │   ├── animations/     # Animation effects
-│   │   ├── plasma/     # Plasma-based animations
-│   │   │   └── lavalamp/  # Lava lamp components
-│   │   └── tunnels/    # Tunnel-based animations
+│   │   └── plasma/     # Plasma-based animations
+│   │       └── lavalamp/  # Lava lamp components
 │   ├── config/         # Default configurations 
 │   ├── core/           # Engine components
 │   │   └── automation/ # Automated parameter management

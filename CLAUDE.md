@@ -56,14 +56,7 @@ Currently implemented animations:
 - Nebula
 - Flow Field
 - Cellular
-- Noise Cloud
-- Spiral
-- Waves
-- Mandala
-- Tunnels
-  - Classic
-  - Vortex
-  - Wormhole
+- Noise Cloud (Cloud Formations)
 
 ## Adding New Animations
 To create a new animation:
