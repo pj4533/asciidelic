@@ -20,9 +20,10 @@ AsciiDelic is a browser-based ASCII art animation system with various visual eff
   - Animations in `/src/animations/`
   - Utils in `/src/utils/`
   - Config in `/src/config/`
+  - UI in `/src/ui/`
 
 ## Coding Conventions
-- Follow existing patterns when adding new features
+- Follow existing patterns when adding new animations
 - Keep animations modular and consistent with other implementation patterns
 - Use ES6+ features (classes, arrow functions, destructuring)
 - Focus on performance optimization for smooth animations
@@ -39,13 +40,34 @@ AsciiDelic is a browser-based ASCII art animation system with various visual eff
   - Space: Cycle color modes (manual mode)
   - +/-: Adjust animation speed (manual mode)
   - S/D: Adjust character density (manual mode)
+  - R: Randomize animation parameters (manual mode)
   - M: Toggle between automated and manual modes
+
+## Animation System
+- Each animation is a modular implementation with consistent interfaces
+- Animations can be nested (e.g., Lava Lamp is a variation of Plasma)
+- Core rendering done by the Engine class
+- Grid-based rendering system with customizable character mappings
 
 ## Animation Types
 Currently implemented animations:
+- Lava Lamp (default)
 - Plasma
-- Lava Lamp
 - Nebula
 - Flow Field
 - Cellular
-- Cloud Formations
+- Noise Cloud
+- Spiral
+- Waves
+- Mandala
+- Tunnels
+  - Classic
+  - Vortex
+  - Wormhole
+
+## Adding New Animations
+To create a new animation:
+1. Create a new file in the `src/animations/` directory
+2. Implement the required animation interface (see existing animations for reference)
+3. Register the animation in `src/animations/index.js`
+4. Ensure it follows the pattern of accepting grid, time, deltaTime, config, characters, and colorManager parameters

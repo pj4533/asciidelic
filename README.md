@@ -8,9 +8,10 @@ AsciiDelic is an interactive ASCII art animation engine that renders colorful, d
 
 ## 🌟 Features
 
-- **6 Animation Types**: Plasma, Lava Lamp, Nebula, Flow Field, Cellular, and Cloud Formations
+- **10+ Animation Types**: Lava Lamp (default), Plasma, Nebula, Flow Field, Cellular, Cloud Formations, Spiral, Waves, Mandala, and multiple Tunnel variations
 - **Interactive Controls**: Easily change patterns, colors, speed, and density
 - **Dual-Mode Interface**: Switch between automated and manual parameter control
+- **Randomize Function**: Instantly create new visual combinations
 - **Multiple Color Modes**: Rainbow, monochrome, complementary, and gradient
 - **Rich Character Sets**: Various ASCII characters create different visual textures
 - **Responsive Design**: Adapts to different screen sizes
@@ -37,6 +38,7 @@ That's it! No build process or dependencies required.
 | Space | Cycle through color modes (manual mode) |
 | +/- | Increase/decrease animation speed (manual mode) |
 | S/D | Decrease/increase character density (manual mode) |
+| R | Randomize animation parameters |
 | M | Toggle between automated and manual modes |
 
 ## 🧩 Project Structure
@@ -68,4 +70,3 @@ New animations can be added by following these steps:
 1. Create a new file in the `src/animations/` directory
 2. Implement your animation function that takes `grid`, `time`, and `config` parameters
 3. Register your animation in `src/animations/index.js`
-
