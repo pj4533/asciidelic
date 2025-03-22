@@ -225,9 +225,15 @@ function applySimpleBlur(buffer, width, height) {
  */
 function renderCell(grid, x, y, value, time, blobs, colorManager) {
     // Calculate display character index based on value
-    const normValue = Math.min(1, value * 1.2); // Boost for better visuals
-    const charIndex = Math.floor(normValue * (plasmaChars.length - 1));
-    const char = normValue > 0.05 ? plasmaChars[plasmaChars.length - 1 - charIndex] : bgChars[Math.floor(Math.random() * bgChars.length)];
+    // Enhance the boost factor for more defined blob edges
+    const normValue = Math.min(1, value * 1.5); // Stronger boost for better contrast
+    
+    // Use power function to create more distinct transitions between dense/sparse areas
+    const enhancedValue = Math.pow(normValue, 0.85); // Sharper transitions
+    const charIndex = Math.floor(enhancedValue * (plasmaChars.length - 1));
+    
+    // More defined transition between background and blob
+    const char = normValue > 0.03 ? plasmaChars[plasmaChars.length - 1 - charIndex] : bgChars[Math.floor(Math.random() * bgChars.length)];
     
     // Find the most influential blob at this point
     const nx = x / grid.width;
@@ -254,46 +260,32 @@ function renderCell(grid, x, y, value, time, blobs, colorManager) {
         // in the updateBlobColor function
         hue = dominantBlob.hue;
         
-        // Apply color mode variation based on colorManager's mode
-        switch (colorManager.colorMode) {
-            case 0: // Vibrant Rainbow
-                // Keep the blob's color but add animation-based shift for psychedelic effect
-                const flowOffset = Math.sin(nx * 6 + ny * 8 + time * 0.5) * 15;
-                hue = (hue + flowOffset) % 360;
-                break;
-                
-            case 1: // Multi-Color Gradient
-                // Stronger gradient influence for more vibrant colors
-                const gradientHue = colorManager.getHue(nx, ny, distance, normValue, time);
-                hue = (hue * 0.6 + gradientHue * 0.4) % 360;
-                break;
-                
-            case 2: // Triadic
-                // Enhanced triadic with slight variations
-                const baseTriad = Math.round(hue / 120) * 120;
-                hue = (baseTriad + colorManager.baseHue % 120 + Math.sin(time + nx * 10) * 10) % 360;
-                break;
-                
-            case 3: // Color Wave
-                // Stronger wave pattern for more psychedelic effect
-                const waveInfluence = Math.sin(distance * 4 + time * 0.3) * 0.5 + 0.5;
-                const waveHue = colorManager.getHue(nx, ny, distance, waveInfluence, time);
-                hue = (hue * 0.6 + waveHue * 0.4) % 360;
-                break;
-        }
+        // Get the hue directly from colorManager - just like plasma does
+        // This ensures we respect the color mode completely
+        hue = colorManager.getHue(nx * grid.width, ny * grid.height, distance * Math.sqrt(grid.width*grid.width + grid.height*grid.height), normValue, time);
         
-        // Higher saturation and lightness for more psychedelic, vivid colors
-        // Much less dependency on colorManager for these values to maintain vibrance
-        saturation = Math.min(100, Math.max(80, colorManager.saturation * 0.3 + 70)); // At least 80% saturation
+        // Use color manager's saturation directly - identical to plasma
+        saturation = colorManager.saturation;
         
-        // Brighter core, less dependency on colorManager lightness which may be low
-        const baseLightness = Math.min(85, Math.max(50, colorManager.lightness + 20)); // Ensure at least 50%
-        lightness = Math.min(95, baseLightness + normValue * 20); // Higher lightness boost
+        // Calculate lightness like plasma does - 50 + normalizedValue * 30
+        // But adapt it slightly for the blob structure
+        const plasmaStyleLightness = 50 + normValue * 30;
+        
+        // Add a slight depth effect based on value for blob structure
+        // Higher values (closer to blob center) get slightly brighter
+        const depthEffect = Math.pow(normValue, 1.2) * 10;
+        
+        // Combine for final lightness
+        lightness = plasmaStyleLightness + depthEffect;
     } else {
-        // Background uses colorManager's color scheme but more vivid
-        hue = colorManager.getHue(nx, ny, distance, normValue, time);
-        saturation = Math.min(100, colorManager.saturation * 0.7 + 30); // Higher saturation floor
-        lightness = Math.max(15, Math.min(40, normValue * 70)); // Brighter background
+        // Background also uses plasma-style coloring
+        hue = colorManager.getHue(nx * grid.width, ny * grid.height, distance * Math.sqrt(grid.width*grid.width + grid.height*grid.height), normValue, time);
+        
+        // Use saturation directly from colorManager for consistency with plasma
+        saturation = colorManager.saturation;
+        
+        // For background, use plasma style but darker to create contrast with blobs
+        lightness = Math.max(10, Math.min(40, (30 + normValue * 15))); // Darker variation of plasma style
     }
     
     // Set the cell

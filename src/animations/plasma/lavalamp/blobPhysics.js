@@ -24,11 +24,12 @@ export function applyPhysics(blobSystem, time, deltaTime, colorTime) {
         // Store reference to blob system for colorManager access
         blob.system = blobSystem;
         
-        // Update age
-        blob.age += dt;
+        // Update age - faster aging for larger blobs to prevent screen filling
+        const sizeAgeModifier = 1.0 + (blob.size * 1.5); // Larger blobs age up to 2.5x faster
+        blob.age += dt * sizeAgeModifier;
         
-        // Remove expired blobs
-        if (blob.age >= blob.lifespan) {
+        // Remove expired blobs or force remove oldest ones if we have too many
+        if (blob.age >= blob.lifespan || (blobs.length > blobSystem.maxBlobs * 0.9 && i < 3)) {
             blobs.splice(i, 1);
             continue;
         }
@@ -300,17 +301,23 @@ function updateBlobColor(blob, time, dt) {
             if (blob.hue < 0) blob.hue += 360;
         }
         
-        // More vibrant color targets from color manager
-        blob.targetSaturation = Math.min(100, colorManager.saturation * (0.9 + random(0, 0.2)));
-        blob.targetLightness = Math.min(90, Math.max(50, colorManager.lightness * (0.9 + random(0, 0.3))));
+        // Use saturation directly from colorManager - just like plasma does
+        blob.targetSaturation = colorManager.saturation;
         
-        // Apply oscillating saturation and lightness effects
-        const pulseRate = 0.8; // Faster pulsing
-        const saturationPulse = Math.sin(time * pulseRate + blob.id * 3) * 10;
-        const lightnessPulse = Math.cos(time * pulseRate + blob.id * 5) * 10;
+        // Calculate lightness like plasma does - 50 + value * 30
+        // where value is the blob's life phase in this case
+        blob.targetLightness = 50 + (blob.age / blob.lifespan) * 30;
         
-        blob.targetSaturation = Math.min(100, Math.max(80, blob.targetSaturation + saturationPulse));
-        blob.targetLightness = Math.min(90, Math.max(60, blob.targetLightness + lightnessPulse));
+        // Add subtle position-based variation to simulate plasma's spatial variation
+        const gridX = blob.x * 20; // Scale to simulate grid coordinates
+        const gridY = blob.y * 20;
+        
+        // Add very subtle oscillations - much less than before to respect colorManager more
+        const pulseRate = 0.3; // Slower pulsing
+        const lightnessPulse = Math.cos(time * pulseRate + gridX + gridY) * 5; // Much smaller variation
+        
+        // Apply the subtle pulse to lightness
+        blob.targetLightness = Math.min(90, Math.max(40, blob.targetLightness + lightnessPulse));
     } else {
         // Original behavior if no color manager but with faster shifts
         blob.hue += blob.hueShift * 2 * dt; // Double the shift rate
@@ -342,10 +349,10 @@ function updateBlobColor(blob, time, dt) {
 function spawnNewBlobs(blobSystem, time) {
     const { blobs, maxBlobs, lastSpawnTime, colorManager } = blobSystem;
     
-    // Initial blob generation - ensure we have at least a minimum number of blobs
-    if (blobs.length < 10) {
+    // Initial blob generation - ensure we have a minimal starting population
+    if (blobs.length < 5) {  // Reduced initial population from 10 to 5
         // Create multiple blobs at once for initial population
-        const numToCreate = 10 - blobs.length;
+        const numToCreate = 5 - blobs.length;
         for (let i = 0; i < numToCreate; i++) {
             blobs.push(createBlob(time + i * 0.1, colorManager));
         }
@@ -372,8 +379,8 @@ function spawnNewBlobs(blobSystem, time) {
  */
 function createBlob(time, colorManager) {
     // Base properties
-    const size = random(0.1, 0.3); // Increased max size from 0.25 to 0.3
-    const lifespan = random(20, 40); // Increased from 15-30 to 20-40 for longer-lived blobs
+    const size = random(0.08, 0.25); // Reduced size range for less screen coverage
+    const lifespan = random(15, 25); // Significantly shorter lifespan to prevent accumulation
     
     // Random position
     const x = random(0.1, 0.9);
@@ -536,8 +543,8 @@ function applyBlobInteractions(blobs, dt, time, blobSystem) {
                 time
             );
             
-            // Add velocity in opposite directions
-            const splitVelocity = 0.05 + Math.random() * 0.05;
+            // Add velocity in opposite directions - higher to disperse blobs more
+            const splitVelocity = 0.08 + Math.random() * 0.07;
             child1.vx += Math.cos(splitAngle) * splitVelocity;
             child1.vy += Math.sin(splitAngle) * splitVelocity;
             child2.vx -= Math.cos(splitAngle) * splitVelocity;
@@ -702,7 +709,7 @@ function createSplitBlob(parentBlob, size, x, y, time) {
         vertices,
         currentSize: size,
         age: 0,
-        lifespan: parentBlob.lifespan * (0.7 + random(0, 0.6)), // Slightly shorter lifespan
+        lifespan: parentBlob.lifespan * (0.4 + random(0, 0.5)), // Much shorter lifespan for split blobs
         opacity: 0.3, // Start partially visible
         hue: (parentBlob.hue + random(-20, 20) + 360) % 360, // Similar but not identical color
         saturation: Math.min(100, parentBlob.saturation + random(-10, 10)),
@@ -754,10 +761,10 @@ function createMergedBlob(blobA, blobB, time) {
         });
     }
     
-    // Average lifespan, but gain a little extra time from merging
+    // Average lifespan, but without major bonuses to prevent accumulation
     const avgLifespan = (blobA.lifespan + blobB.lifespan) * 0.5;
     const avgAge = (blobA.age + blobB.age) * 0.5;
-    const extraLifespan = 5 + random(0, 10); // Bonus time from merging
+    const extraLifespan = 2 + random(0, 3); // Smaller bonus time from merging
     
     // Average the hues (being careful with the circular nature of hue)
     const hueDiff = ((blobB.hue - blobA.hue + 540) % 360) - 180;

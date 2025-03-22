@@ -37,14 +37,14 @@ export function lavaLampAnimation(grid, time, deltaTime, config, characters, col
     
     // Configure blob system based on density
     if (config.density !== undefined) {
-        // Adjust max blobs based on density (between 15-30)
-        const maxBlobs = Math.round(15 + (config.density * 15));
+        // Adjust max blobs based on density (between 5-20) - significantly reduced range
+        const maxBlobs = Math.round(5 + (config.density * 15));
         if (blobSystem.maxBlobs !== maxBlobs) {
             blobSystem.maxBlobs = maxBlobs;
         }
         
-        // Adjust spawn interval inversely with density (0.8-0.3 seconds)
-        blobSystem.spawnInterval = Math.max(0.3, 0.8 - (config.density * 0.5));
+        // Adjust spawn interval inversely with density (1.2-0.6 seconds) - longer intervals
+        blobSystem.spawnInterval = Math.max(0.6, 1.2 - (config.density * 0.6));
     }
     
     // Update blob physics and lifecycle with scaled time values
