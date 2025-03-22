@@ -2,7 +2,7 @@
  * Main entry point for lava lamp animation component
  */
 import { createBlobSystem } from './blobLifecycle.js';
-import { applyPhysics } from './blobPhysics.js';
+import { applyPhysics } from './physics/basePhysics.js';
 import { renderPlasma } from './renderer.js';
 
 /**
