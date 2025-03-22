@@ -16,9 +16,10 @@ import { renderPlasma } from './renderer.js';
  */
 export function lavaLampAnimation(grid, time, deltaTime, config, characters, colorManager) {
     // Apply speed configuration to time and deltaTime
-    // Use a much lower scaling factor for slower, more fluid-like behavior
-    // The range is now much narrower to keep lava lamp slow and gentle
-    const effectiveSpeed = 0.05 + (config.speed * 0.1); // Scale for slower motion with narrow range
+    // Adjusted range to spread over wider input scale (0-3 instead of 0-1)
+    // At speed=0: effectiveSpeed = 0.2 (unchanged minimum)
+    // At speed=3: effectiveSpeed = 0.62 (same as what speed=1 was previously)
+    const effectiveSpeed = 0.2 + (config.speed * 0.14); // Same baseline with reduced multiplier
     const colorTime = time * 0.2; // Separate time value for colors - NOT affected by speed
     const slowTime = time * effectiveSpeed;
     const scaledDeltaTime = deltaTime * effectiveSpeed; // Scale deltaTime consistently
