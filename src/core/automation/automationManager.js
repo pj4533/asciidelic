@@ -97,6 +97,52 @@ export class AutomationManager {
     }
     
     /**
+     * Randomize all parameters at once
+     * Creates dramatic instant changes for visual impact
+     */
+    randomizeAllParameters() {
+        // Generate completely random values (not gradual changes)
+        
+        // Random speed (0.3 to 2.5)
+        const randomSpeed = 0.3 + Math.random() * 2.2;
+        
+        // Random density (0.2 to 0.9)
+        const randomDensity = 0.2 + Math.random() * 0.7;
+        
+        // Random color mode (0 to 3)
+        const randomColorMode = Math.floor(Math.random() * 4);
+        
+        // Random hue (0 to 359)
+        const randomHue = Math.floor(Math.random() * 360);
+        
+        // Faster transition for more immediate visual effect
+        const randomTransitionSpeed = 0.1 + Math.random() * 0.1;
+        
+        // Update all parameters at once
+        this.updateConfig({
+            targetSpeed: randomSpeed,
+            targetDensity: randomDensity,
+            colorMode: randomColorMode, // Apply immediately
+            targetColorMode: randomColorMode,
+            targetHue: randomHue,
+            hueTransitionSpeed: randomTransitionSpeed,
+            // Reset transition so changes start taking effect immediately
+            transitionProgress: 0
+        });
+        
+        // Optionally, you could also randomize the animation type:
+        // const randomAnimation = Math.floor(Math.random() * [number of animations]);
+        // this.updateConfig({ animationType: randomAnimation });
+        
+        return {
+            speed: randomSpeed,
+            density: randomDensity,
+            colorMode: randomColorMode,
+            hue: randomHue
+        };
+    }
+    
+    /**
      * Update color mode parameter if needed
      * @param {boolean} changeColorMode - Whether to change color mode
      */

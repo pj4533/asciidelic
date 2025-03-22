@@ -145,6 +145,10 @@ export class InputManager {
         this.bindKey('m', this.handleModeToggle.bind(this));
         this.bindKey('M', this.handleModeToggle.bind(this));
         
+        // Randomize parameters in automated mode
+        this.bindKey('r', this.handleRandomize.bind(this));
+        this.bindKey('R', this.handleRandomize.bind(this));
+        
         // Manual mode controls
         this.bindKey('ArrowRight', this.handleColorRight.bind(this));
         this.bindKey('ArrowLeft', this.handleColorLeft.bind(this));
@@ -273,6 +277,33 @@ export class InputManager {
         if (!this.engine.config.isAutomatedMode) {
             this.engine.updateConfig({ density: Math.max(this.engine.config.density - 0.1, 0.1) });
             this.uiManager.updateAnimationDisplay(this.engine.config.animationType, this.animations, this.engine.config);
+        }
+    }
+    
+    /**
+     * Handle randomize request
+     * Randomizes all parameters when in automated mode for dramatic visual changes
+     */
+    handleRandomize() {
+        // This should work in both modes to randomly change parameters
+        // But is especially useful in automated mode
+        if (this.engine.automationManager) {
+            const newParams = this.engine.automationManager.randomizeAllParameters();
+            
+            // Flash message to user indicating randomization happened
+            this.uiManager.showTemporaryMessage('✨ Parameters Randomized! ✨', 1500);
+            
+            // Update UI display with new parameters
+            this.uiManager.updateAnimationDisplay(
+                this.engine.config.animationType, 
+                this.animations, 
+                this.engine.config
+            );
+            
+            // If in manual mode, refresh control display to show new values
+            if (!this.engine.config.isAutomatedMode) {
+                this.uiManager.updateModeDisplay(false);
+            }
         }
     }
 }
