@@ -11,7 +11,6 @@ export const defaultConfig = {
     isAutomatedMode: true, // false: manual, true: automated parameter changes
     
     // Animation control
-    animationType: 0,
     speed: 1.0, // animation speed multiplier
     
     // Character appearance

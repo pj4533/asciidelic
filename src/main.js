@@ -48,20 +48,38 @@ export class AsciiDelic {
         // Create input manager
         this.inputManager = new InputManager(this.engine, this.uiManager, animations);
         
-        // Find the default animation index
-        const defaultAnimationIndex = animations.findIndex(anim => anim.id === DEFAULT_ANIMATION);
-        const animIndex = defaultAnimationIndex >= 0 ? defaultAnimationIndex : 0;
-        
-        // Set initial animation
-        this.engine.setAnimation(animations[animIndex].id);
-        this.engine.updateConfig({ animationType: animIndex });
-        this.updateAnimationInfo(animIndex);
+        // Initialize with Lava Lamp
+        this.initializeDefaultAnimation();
         
         // Initialize mode based on config
         this.uiManager.updateModeDisplay(this.engine.config.isAutomatedMode);
         
         // Start animation loop
         this.engine.start();
+    }
+    
+    /**
+     * Initialize the default animation (Lava Lamp)
+     */
+    initializeDefaultAnimation() {
+        // Find the lava lamp animation in the animations array
+        const lavaLampIndex = animations.findIndex(anim => anim.id === DEFAULT_ANIMATION); // 'lavalamp'
+        
+        if (lavaLampIndex !== -1) {
+            // First set the animation directly
+            this.engine.setAnimation(DEFAULT_ANIMATION);
+            
+            // Then set animationType to match so UI and keyboard navigation work correctly
+            this.engine.updateConfig({ animationType: lavaLampIndex });
+            
+            // Update the UI to show the current animation
+            this.updateAnimationInfo(lavaLampIndex);
+        } else {
+            // Fallback if lava lamp animation not found
+            this.engine.setAnimation(animations[0].id);
+            this.engine.updateConfig({ animationType: 0 });
+            this.updateAnimationInfo(0);
+        }
     }
     
     /**
