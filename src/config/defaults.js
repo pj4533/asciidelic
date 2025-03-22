@@ -88,7 +88,7 @@ export function getAllCharacters() {
 /**
  * Default animation - the ID of the animation to show on startup
  */
-export const DEFAULT_ANIMATION = 'plasma';
+export const DEFAULT_ANIMATION = 'lavalamp';
 
 /**
  * Default initial config values
