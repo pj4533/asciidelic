@@ -1,59 +1,57 @@
 /**
- * Animation registry - Exports all available animations
+ * Animation Registry - Centralized registry of all available animations
  */
+
+// Import animations
 import { plasmaAnimation } from './plasma.js';
-import { nebulaAnimation } from './plasma/nebula.js';
+import { cellularAnimation } from './plasma/cellular/index.js';
+import { lavaLampAnimation } from './plasma/lavalamp/index.js';
 import { flowFieldAnimation } from './plasma/flowfield.js';
-import { cellularAnimation } from './plasma/cellular.js';
-import { lavaLampAnimation } from './plasma/lavalamp.js';
+import { nebulaAnimation } from './plasma/nebula.js';
 import { noiseCloudAnimation } from './plasma/noisecloud.js';
 
-// Export all animations
-export {
-    plasmaAnimation,
-    nebulaAnimation,
-    flowFieldAnimation,
-    cellularAnimation,
-    lavaLampAnimation,
-    noiseCloudAnimation
-};
-
-// Export named animations with metadata
-export const animations = [
+// Create animation registry with metadata
+const animations = [
     {
         id: 'lavalamp',
         name: 'Lava Lamp',
         fn: lavaLampAnimation,
-        description: 'Dynamic metaballs that morph and interact fluidly'
+        description: 'Fluid-like blobs that morph, split, and combine'
     },
     {
         id: 'plasma',
         name: 'Plasma',
         fn: plasmaAnimation,
-        description: 'A plasma-like effect with flowing patterns'
+        description: 'Smooth plasma-like distortion fields'
     },
     {
         id: 'nebula',
         name: 'Nebula',
         fn: nebulaAnimation,
-        description: 'Ethereal cosmic cloud formations that slowly transform'
+        description: 'Cosmic gas cloud formations'
     },
     {
-        id: 'flowfield', 
+        id: 'flowfield',
         name: 'Flow Field',
         fn: flowFieldAnimation,
-        description: 'Currents and streams flowing in a dynamic fluid pattern'
+        description: 'Particles following dynamic vector fields'
     },
     {
         id: 'cellular',
         name: 'Cellular',
         fn: cellularAnimation,
-        description: 'Organic cell-like structures that grow and evolve'
+        description: 'Cell-like structures that grow and interact'
     },
     {
         id: 'noisecloud',
-        name: 'Cloud Formations',
+        name: 'Noise Cloud',
         fn: noiseCloudAnimation,
-        description: 'Billowing clouds that drift and change shape'
+        description: 'Cloud-like formations based on noise'
     }
 ];
+
+// Export the animations array
+export { animations };
+
+// Default animation
+export const DEFAULT_ANIMATION = 'lavalamp';
