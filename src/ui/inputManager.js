@@ -1,6 +1,8 @@
 /**
  * Input Manager - Central system for handling user input in AsciiDelic
  */
+import { createInputHandlers } from './inputHandlers.js';
+
 export class InputManager {
     /**
      * Create a new input manager
@@ -15,8 +17,9 @@ export class InputManager {
         this.keyBindings = new Map();
         this.keysPressed = new Set();
         
-        // Set up key bindings and event listeners
+        // Create action handlers
         if (engine && uiManager && animations) {
+            this.actionHandlers = createInputHandlers(engine, uiManager, animations);
             this.setupDefaultBindings();
             this.setupEventListeners();
         }
@@ -138,167 +141,32 @@ export class InputManager {
      */
     setupDefaultBindings() {
         // Animation navigation - always active regardless of mode
-        this.bindKey('ArrowUp', this.handleAnimationPrevious.bind(this));
-        this.bindKey('ArrowDown', this.handleAnimationNext.bind(this));
+        this.bindKey('ArrowUp', this.actionHandlers.handleAnimationPrevious.bind(this.actionHandlers));
+        this.bindKey('ArrowDown', this.actionHandlers.handleAnimationNext.bind(this.actionHandlers));
         
         // Mode toggle
-        this.bindKey('m', this.handleModeToggle.bind(this));
-        this.bindKey('M', this.handleModeToggle.bind(this));
+        this.bindKey('m', this.actionHandlers.handleModeToggle.bind(this.actionHandlers));
+        this.bindKey('M', this.actionHandlers.handleModeToggle.bind(this.actionHandlers));
         
         // Randomize parameters
-        this.bindKey('r', this.handleRandomize.bind(this));
-        this.bindKey('R', this.handleRandomize.bind(this));
+        this.bindKey('r', this.actionHandlers.handleRandomize.bind(this.actionHandlers));
+        this.bindKey('R', this.actionHandlers.handleRandomize.bind(this.actionHandlers));
         
         // Manual mode controls
-        this.bindKey('ArrowRight', this.handleColorRight.bind(this));
-        this.bindKey('ArrowLeft', this.handleColorLeft.bind(this));
-        this.bindKey(' ', this.handleColorMode.bind(this));
+        this.bindKey('ArrowRight', this.actionHandlers.handleColorRight.bind(this.actionHandlers));
+        this.bindKey('ArrowLeft', this.actionHandlers.handleColorLeft.bind(this.actionHandlers));
+        this.bindKey(' ', this.actionHandlers.handleColorMode.bind(this.actionHandlers));
         
         // Speed controls
-        this.bindKey('+', this.handleSpeedIncrease.bind(this));
-        this.bindKey('=', this.handleSpeedIncrease.bind(this));
-        this.bindKey('-', this.handleSpeedDecrease.bind(this));
-        this.bindKey('_', this.handleSpeedDecrease.bind(this));
+        this.bindKey('+', this.actionHandlers.handleSpeedIncrease.bind(this.actionHandlers));
+        this.bindKey('=', this.actionHandlers.handleSpeedIncrease.bind(this.actionHandlers));
+        this.bindKey('-', this.actionHandlers.handleSpeedDecrease.bind(this.actionHandlers));
+        this.bindKey('_', this.actionHandlers.handleSpeedDecrease.bind(this.actionHandlers));
         
         // Density controls
-        this.bindKey('d', this.handleDensityIncrease.bind(this));
-        this.bindKey('D', this.handleDensityIncrease.bind(this));
-        this.bindKey('s', this.handleDensityDecrease.bind(this));
-        this.bindKey('S', this.handleDensityDecrease.bind(this));
-    }
-    
-    /**
-     * Switch to the previous animation
-     */
-    handleAnimationPrevious() {
-        const currentIdx = this.engine.config.animationType;
-        const newIdx = (currentIdx - 1 + this.animations.length) % this.animations.length;
-        this.changeAnimation(newIdx);
-    }
-    
-    /**
-     * Switch to the next animation
-     */
-    handleAnimationNext() {
-        const currentIdx = this.engine.config.animationType;
-        const newIdx = (currentIdx + 1) % this.animations.length;
-        this.changeAnimation(newIdx);
-    }
-    
-    /**
-     * Change to a specific animation
-     * @param {number} index - Index of the animation to switch to
-     */
-    changeAnimation(index) {
-        if (index < 0 || index >= this.animations.length) return;
-        
-        this.engine.updateConfig({ animationType: index });
-        this.engine.setAnimation(this.animations[index].id);
-        this.uiManager.updateAnimationDisplay(index, this.animations, this.engine.config);
-    }
-    
-    /**
-     * Handle mode toggle
-     */
-    handleModeToggle() {
-        const currentMode = this.engine.config.isAutomatedMode;
-        const newMode = !currentMode;
-        
-        const configSnapshot = this.engine.toggleAutomatedMode(newMode);
-        this.uiManager.updateModeDisplay(newMode);
-        
-        const currentIdx = this.engine.config.animationType;
-        this.uiManager.updateAnimationDisplay(currentIdx, this.animations, this.engine.config);
-    }
-    
-    /**
-     * Handle color shift right
-     */
-    handleColorRight() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newHue = (this.engine.config.targetHue + 30) % 360;
-            this.engine.updateConfig({ targetHue: newHue });
-            this.uiManager.updateParameterChange(this.engine.config, 'targetHue', newHue);
-        }
-    }
-    
-    /**
-     * Handle color shift left
-     */
-    handleColorLeft() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newHue = (this.engine.config.targetHue - 30 + 360) % 360;
-            this.engine.updateConfig({ targetHue: newHue });
-            this.uiManager.updateParameterChange(this.engine.config, 'targetHue', newHue);
-        }
-    }
-    
-    /**
-     * Handle color mode change
-     */
-    handleColorMode() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newMode = (this.engine.config.colorMode + 1) % 4;
-            this.engine.updateConfig({ colorMode: newMode });
-            this.uiManager.updateParameterChange(this.engine.config, 'colorMode', newMode);
-        }
-    }
-    
-    /**
-     * Handle speed increase
-     */
-    handleSpeedIncrease() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newSpeed = Math.min(this.engine.config.speed + 0.1, 3.0);
-            this.engine.updateConfig({ speed: newSpeed });
-            this.uiManager.updateParameterChange(this.engine.config, 'speed', newSpeed);
-        }
-    }
-    
-    /**
-     * Handle speed decrease
-     */
-    handleSpeedDecrease() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newSpeed = Math.max(this.engine.config.speed - 0.1, 0.2);
-            this.engine.updateConfig({ speed: newSpeed });
-            this.uiManager.updateParameterChange(this.engine.config, 'speed', newSpeed);
-        }
-    }
-    
-    /**
-     * Handle density increase
-     */
-    handleDensityIncrease() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newDensity = Math.min(this.engine.config.density + 0.1, 1.0);
-            this.engine.updateConfig({ density: newDensity });
-            this.uiManager.updateParameterChange(this.engine.config, 'density', newDensity);
-        }
-    }
-    
-    /**
-     * Handle density decrease
-     */
-    handleDensityDecrease() {
-        if (!this.engine.config.isAutomatedMode) {
-            const newDensity = Math.max(this.engine.config.density - 0.1, 0.1);
-            this.engine.updateConfig({ density: newDensity });
-            this.uiManager.updateParameterChange(this.engine.config, 'density', newDensity);
-        }
-    }
-    
-    /**
-     * Handle randomize request
-     * Randomizes all parameters regardless of mode
-     */
-    handleRandomize() {
-        if (this.engine.automationManager) {
-            const newParams = this.engine.automationManager.randomizeAllParameters();
-            
-            // Update UI to show parameters
-            const currentIdx = this.engine.config.animationType;
-            this.uiManager.updateAnimationDisplay(currentIdx, this.animations, this.engine.config);
-        }
+        this.bindKey('d', this.actionHandlers.handleDensityIncrease.bind(this.actionHandlers));
+        this.bindKey('D', this.actionHandlers.handleDensityIncrease.bind(this.actionHandlers));
+        this.bindKey('s', this.actionHandlers.handleDensityDecrease.bind(this.actionHandlers));
+        this.bindKey('S', this.actionHandlers.handleDensityDecrease.bind(this.actionHandlers));
     }
 }

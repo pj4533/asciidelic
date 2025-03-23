@@ -4,7 +4,7 @@
 import { CharacterGrid } from './grid.js';
 import { Renderer } from './renderer.js';
 import { defaultConfig, getAllCharacters } from '../config/defaults.js';
-import { ColorManager } from '../utils/color.js';
+import { ColorManager } from '../utils/colorManager.js';
 import { AutomationManager } from './automation/automationManager.js';
 
 export class AsciiEngine {
